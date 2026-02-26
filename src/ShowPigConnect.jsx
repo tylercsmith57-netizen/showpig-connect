@@ -146,7 +146,7 @@ const cycleCalc = (cycle) => {
   if (cycle.type === 'open') return { status: 'open', nextHeatDate: cycle.nextHeatDate || addDays(cycle.openDate, HEAT_INTERVAL_DAYS), openDate: cycle.openDate };
   // Due date is calculated from the BREED date only once confirmed conceived
   const conceiveDate = cycle.conceiveDate || null;
-  const dueDate = conceiveDate ? addDays(conceiveDate, GESTATION_DAYS) : null;
+  const dueDate = conceiveDate ? addDays(cycle.breedDate, GESTATION_DAYS) : null;
   const isConfirmed = !!cycle.farrowDateActual;
   const actualFarrow = cycle.farrowDateActual || null;
   const dueDaysFromNow = dueDate ? daysFromToday(dueDate) : null;
