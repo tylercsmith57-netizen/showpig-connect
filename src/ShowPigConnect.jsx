@@ -249,7 +249,7 @@ const css = `
   h1,h2,h3,h4 { font-family: 'Syne', sans-serif; }
   ::selection { background: var(--blue); color: white; }
   ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: var(--charcoal); } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-  .app { display: flex; min-height: 100vh; }
+  .app { display: flex; min-height: 100vh; width: 100%; }
   .sidebar { width: 232px; min-width: 232px; background: var(--charcoal); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow: hidden; }
   .sidebar-brand { padding: 28px 22px 22px; border-bottom: 1px solid var(--border); position: relative; overflow: hidden; }
   .sidebar-brand::before { content: ''; position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, rgba(29,78,216,0.2) 0%, transparent 70%); }
@@ -261,7 +261,7 @@ const css = `
   .nav-item:hover { background: rgba(255,255,255,0.03); color: var(--text); }
   .nav-item.active { background: var(--blue-dim); color: var(--blue-bright); border-left-color: var(--blue-bright); }
   .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
-  .main { flex: 1; padding: 36px 44px; max-width: 1120px; overflow-y: auto; }
+  .main { flex: 1; padding: 36px 44px; max-width: 1120px; overflow-y: auto; margin: 0 auto; }
   .page-header { margin-bottom: 32px; }
   .page-header h2 { font-size: 2rem; color: var(--text); letter-spacing: -0.04em; }
   .page-header p { color: var(--muted); margin-top: 5px; font-size: 0.875rem; }
