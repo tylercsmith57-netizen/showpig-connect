@@ -4,11 +4,12 @@ export async function loadFarmData() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: farm } = await supabase
+  const { data: farm, error: farmError } = await supabase
     .from('farms')
     .select('*')
     .single()
 
+  console.log('farm:', farm, 'error:', farmError)
   if (!farm) return null
 
   const farmId = farm.id
@@ -22,11 +23,14 @@ export async function loadFarmData() {
   ])
 
   return {
-    farm: { name: farm.name, owner: farm.owner_name, location: farm.location },
-    sows: sows.data || [],
-    boars: boars.data || [],
-    litters: litters.data || [],
-    pigs: pigs.data || [],
-    showmen: customers.data || [],
+    farmId: farm.id,
+    farmData: {
+      farm: { name: farm.name, owner: farm.owner_name, location: farm.location },
+      sows: sows.data || [],
+      boars: boars.data || [],
+      litters: litters.data || [],
+      pigs: pigs.data || [],
+      showmen: customers.data || [],
+    }
   }
 }

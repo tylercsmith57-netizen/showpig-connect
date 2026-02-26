@@ -3248,16 +3248,16 @@ const [loading, setLoading] = useState(false)
 useEffect(() => {
   if (portal !== 'breeder') return
   setLoading(true)
-  loadFarmData().then(farmData => {
-    if (farmData) {
-      setData(farmData)
+  loadFarmData().then(result => {
+    if (result) {
+      setData(result.farmData)
+      setFarmId(result.farmId)
     } else {
       setData({ farm: { name: '', owner: '', location: '' }, sows: [], boars: [], litters: [], pigs: [], showmen: [] })
     }
     setLoading(false)
   })
 }, [portal])
-
   const [view, setView] = useState({ page: "dashboard" });
 
   // Modal state
@@ -3275,6 +3275,7 @@ useEffect(() => {
   const [addPigLitterId, setAddPigLitterId] = useState(null);
   const [showFarrowModal, setShowFarrowModal] = useState(false);
   const [farrowDefaultSow, setFarrowDefaultSow] = useState(null);
+  const [farmId, setFarmId] = useState(null)
 
   // Data mutations
   const logBreedDate = (sowId, cycle, autoExpenses = []) => {
@@ -3289,16 +3290,32 @@ useEffect(() => {
   const addExpenses = (entries) => {
     setData(prev => ({ ...prev, sows: prev.sows.map(s => { const mine = entries.filter(e => e.sowId === s.id); return mine.length === 0 ? s : { ...s, costs: [...(s.costs || []), ...mine.map(e => e.cost)] }; }) }));
   };
-  const saveSow = (sow) => {
-    setData(prev => {
-      const exists = prev.sows.find(s => s.id === sow.id);
-      return { ...prev, sows: exists ? prev.sows.map(s => s.id === sow.id ? sow : s) : [...prev.sows, sow] };
-    });
-  };
-  const deleteSow = (id) => {
-    if (!window.confirm("Delete this sow? This won't delete associated litters or pigs.")) return;
-    setData(prev => ({ ...prev, sows: prev.sows.filter(s => s.id !== id) }));
-  };
+const saveSow = async (sow) => {
+  const sowData = {
+    farm_id: farmId,
+    name: sow.name,
+    tag: sow.tag,
+    breed: sow.breed,
+    dob: sow.dob || null,
+    sire: sow.sire || null,
+    dam_sire: sow.damSire || null,
+    active: true,
+    notes: sow.notes || null,
+  }
+
+  if (sow.id && !sow.id.startsWith('sow-') && !sow.id.startsWith('id-')) {
+    await supabase.from('sows').update(sowData).eq('id', sow.id)
+    setData(prev => ({ ...prev, sows: prev.sows.map(s => s.id === sow.id ? { ...sow, ...sowData } : s) }))
+  } else {
+    const { data: newSow } = await supabase.from('sows').insert(sowData).select().single()
+    if (newSow) setData(prev => ({ ...prev, sows: [...prev.sows, { ...sow, id: newSow.id }] }))
+  }
+}
+
+const deleteSow = (id) => {
+  if (!window.confirm("Delete this sow? This won't delete associated litters or pigs.")) return;
+  setData(prev => ({ ...prev, sows: prev.sows.filter(s => s.id !== id) }));
+};
   const saveBoar = (boar) => {
     setData(prev => {
       const exists = prev.boars.find(b => b.id === boar.id);
