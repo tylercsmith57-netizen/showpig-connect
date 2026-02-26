@@ -3316,29 +3316,59 @@ const deleteSow = (id) => {
   if (!window.confirm("Delete this sow? This won't delete associated litters or pigs.")) return;
   setData(prev => ({ ...prev, sows: prev.sows.filter(s => s.id !== id) }));
 };
-  const saveBoar = (boar) => {
-    setData(prev => {
-      const exists = prev.boars.find(b => b.id === boar.id);
-      return { ...prev, boars: exists ? prev.boars.map(b => b.id === boar.id ? boar : b) : [...prev.boars, boar] };
-    });
-  };
-  const deleteBoar = (id) => {
-    if (!window.confirm("Delete this boar?")) return;
-    setData(prev => ({ ...prev, boars: prev.boars.filter(b => b.id !== id) }));
-  };
-  const saveShowman = (sm) => {
-    setData(prev => {
-      const exists = prev.showmen.find(s => s.id === sm.id);
-      // Update pig sold status
-      const updatedPigs = prev.pigs.map(p => {
-        if (sm.pigIds.includes(p.id)) return { ...p, sold: true, showmanName: sm.name, showmanContact: sm.email, showmanPhone: sm.phone };
-        if (exists?.pigIds?.includes(p.id) && !sm.pigIds.includes(p.id)) return { ...p, sold: false, showmanName: null, showmanContact: null, showmanPhone: null };
-        return p;
-      });
-      const updatedShowmen = exists ? prev.showmen.map(s => s.id === sm.id ? sm : s) : [...prev.showmen, sm];
-      return { ...prev, showmen: updatedShowmen, pigs: updatedPigs };
-    });
-  };
+const saveBoar = async (boar) => {
+  const boarData = {
+    farm_id: farmId,
+    name: boar.name,
+    tag: boar.tag,
+    breed: boar.breed || null,
+    dob: boar.dob || null,
+    owner: boar.owner || null,
+    location: boar.location || 'on-farm',
+    method: boar.method || 'Natural',
+    semen_dose_price: boar.semenDosePrice || 0,
+    doses_per_breeding: boar.dosesPerBreeding || 1,
+    active: true,
+    notes: boar.notes || null,
+  }
+
+  if (boar.id && !boar.id.startsWith('boar-') && !boar.id.startsWith('id-')) {
+    await supabase.from('boars').update(boarData).eq('id', boar.id)
+    setData(prev => ({ ...prev, boars: prev.boars.map(b => b.id === boar.id ? { ...boar, ...boarData } : b) }))
+  } else {
+    const { data: newBoar } = await supabase.from('boars').insert(boarData).select().single()
+    if (newBoar) setData(prev => ({ ...prev, boars: [...prev.boars, { ...boar, id: newBoar.id }] }))
+  }
+}
+
+const deleteBoar = (id) => {
+  if (!window.confirm("Delete this boar?")) return;
+  setData(prev => ({ ...prev, boars: prev.boars.filter(b => b.id !== id) }));
+};
+const saveShowman = async (sm) => {
+  const customerData = {
+    farm_id: farmId,
+    name: sm.name,
+    email: sm.email || null,
+    phone: sm.phone || null,
+    city: sm.city || null,
+    state: sm.state || null,
+    age: sm.age || null,
+    club: sm.club || null,
+    notes: sm.notes || null,
+    portal_enabled: true,
+  }
+
+  if (sm.id && !sm.id.startsWith('showman-') && !sm.id.startsWith('id-')) {
+    await supabase.from('customers').update(customerData).eq('id', sm.id)
+    setData(prev => ({ ...prev, showmen: prev.showmen.map(s => s.id === sm.id ? { ...sm, ...customerData } : s) }))
+  } else {
+    const { data: newCustomer } = await supabase.from('customers').insert(customerData).select().single()
+    if (newCustomer) {
+      setData(prev => ({ ...prev, showmen: [...prev.showmen, { ...sm, id: newCustomer.id }] }))
+    }
+  }
+}
   const deleteShowman = (id) => {
     if (!window.confirm("Delete this customer?")) return;
     setData(prev => {
@@ -3347,9 +3377,39 @@ const deleteSow = (id) => {
       return { ...prev, showmen: prev.showmen.filter(s => s.id !== id), pigs: updatedPigs };
     });
   };
-  const addPig = (pig) => setData(prev => ({ ...prev, pigs: [...prev.pigs, pig] }));
+  const addPig = async (pig) => {
+  const pigData = {
+    farm_id: farmId,
+    litter_id: pig.litterId || null,
+    tag: pig.tag,
+    sex: pig.sex,
+    birth_weight: pig.birthWeight || null,
+    color: pig.color || null,
+    purchase_price: pig.purchasePrice || 0,
+    sold: pig.sold || false,
+  }
 
-  const addLitter = (litter) => setData(prev => ({ ...prev, litters: [...prev.litters, litter] }));
+  const { data: newPig } = await supabase.from('pigs').insert(pigData).select().single()
+  if (newPig) setData(prev => ({ ...prev, pigs: [...prev.pigs, { ...pig, id: newPig.id }] }))
+}
+
+  const addLitter = async (litter) => {
+  const litterData = {
+    farm_id: farmId,
+    sow_id: litter.sowId,
+    boar_id: litter.boarId || null,
+    farrow_date: litter.farrowDate,
+    number_born: litter.numberBorn || 0,
+    number_born_alive: litter.numberBornAlive || 0,
+    number_weaned: litter.numberWeaned || 0,
+    wean_date: litter.weanDate || null,
+    age_weaned_days: litter.ageWeanedDays || null,
+    notes: litter.notes || null,
+  }
+
+  const { data: newLitter } = await supabase.from('litters').insert(litterData).select().single()
+  if (newLitter) setData(prev => ({ ...prev, litters: [...prev.litters, { ...litter, id: newLitter.id }] }))
+}
 
   const assignCustomer = (customerId, pigId) => {
     setData(prev => {
