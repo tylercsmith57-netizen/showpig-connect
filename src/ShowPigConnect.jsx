@@ -1069,7 +1069,7 @@ function LitterDetail({ data, id, setView, onUpdateLitter, onAddPigToLitter }) {
             <thead><tr><th>Tag</th><th>Sex</th><th>Color</th><th>Birth Wt</th><th>Cur. Wt</th><th>Price</th><th>Status</th></tr></thead>
             <tbody>
               {pigs.map(p => {
-                const latest = p.weightLog[p.weightLog.length - 1];
+                const latest = (p.weightLog || []).length > 0 ? (p.weightLog || [])[(p.weightLog || []).length - 1] : null;
                 return (
                   <tr key={p.id} style={{ cursor: "pointer" }} onClick={() => setView({ page: "pigDetail", id: p.id })}>
                     <td><strong>{p.tag}</strong></td>
@@ -1077,7 +1077,7 @@ function LitterDetail({ data, id, setView, onUpdateLitter, onAddPigToLitter }) {
                     <td style={{ fontSize: "0.8rem" }}>{p.color}</td>
                     <td>{p.birthWeight} lbs</td>
                     <td>{latest ? `${latest.weight} lbs` : "—"}</td>
-                    <td style={{ fontWeight: 600, color: "var(--green)" }}>${p.purchasePrice.toLocaleString()}</td>
+                    <td style={{ fontWeight: 600, color: "var(--green)" }}>${(p.purchasePrice || 0).toLocaleString()}</td>
                     <td><span className={`badge ${p.sold ? "badge-sold" : "badge-available"}`}>{p.sold ? `✓ ${p.showmanName}` : "Available"}</span></td>
                   </tr>
                 );
@@ -1109,7 +1109,7 @@ function PigsView({ data, setView, onAddPig }) {
         {filtered.map(pig => {
           const litter = data.litters.find(l => l.id === pig.litterId);
           const sow = data.sows.find(s => s.id === litter?.sowId);
-          const latest = pig.weightLog[pig.weightLog.length - 1];
+          const latest = (pig.weightLog || []).length > 0 ? (pig.weightLog || [])[((pig.weightLog || []).length - 1)] : null;
           return (
             <div className="card" key={pig.id} onClick={() => setView({ page: "pigDetail", id: pig.id })}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
@@ -1121,7 +1121,7 @@ function PigsView({ data, setView, onAddPig }) {
               <div className="card-stats">
                 <div className="stat"><div className="stat-val">{latest?.weight || "—"}</div><div className="stat-label">Cur. Wt (lbs)</div></div>
                 <div className="stat"><div className="stat-val" style={{ color: "var(--green)" }}>${pig.purchasePrice}</div><div className="stat-label">Price</div></div>
-                <div className="stat"><div className="stat-val">{pig.showResults.length}</div><div className="stat-label">Shows</div></div>
+                <div className="stat"><div className="stat-val">{(pig.showResults || []).length}</div><div className="stat-label">Shows</div></div>
               </div>
               <div style={{ marginTop: 12 }}>
                 <span className={`badge ${pig.sold ? "badge-sold" : "badge-available"}`}>{pig.sold ? `✓ Sold to ${pig.showmanName}` : "● Available"}</span>
@@ -1209,7 +1209,7 @@ function PigDetail({ data, id, setView, onAssignCustomer, onUnassignCustomer }) 
   const litter = data.litters.find(l => l.id === pig.litterId);
   const sow = data.sows.find(s => s.id === litter?.sowId);
   const boar = data.boars.find(b => b.id === litter?.boarId);
-  const latest = pig.weightLog[pig.weightLog.length - 1];
+  const latest = (pig.weightLog || []).length > 0 ? (pig.weightLog || [])[(pig.weightLog || []).length - 1] : null;
   const assignedCustomer = data.showmen.find(sm => (sm.pigIds || []).includes(pig.id));
 
   return (
@@ -1274,31 +1274,31 @@ function PigDetail({ data, id, setView, onAssignCustomer, onUnassignCustomer }) 
         <h4>⚖️ Weight Log</h4>
         <table>
           <thead><tr><th>Date</th><th>Weight (lbs)</th><th>Notes</th></tr></thead>
-          <tbody>{pig.weightLog.map((w, i) => <tr key={i}><td>{fmt(w.date)}</td><td><strong>{w.weight}</strong></td><td>{w.notes}</td></tr>)}</tbody>
+          <tbody>{(pig.weightLog || []).map((w, i) => <tr key={i}><td>{fmt(w.date)}</td><td><strong>{w.weight}</strong></td><td>{w.notes}</td></tr>)}</tbody>
         </table>
       </div>
       <div className="section-card">
         <h4>💉 Vaccination Record</h4>
         <table>
           <thead><tr><th>Vaccine</th><th>Date</th><th>Given By</th></tr></thead>
-          <tbody>{pig.vaccinations.map((v, i) => <tr key={i}><td>{v.name}</td><td>{fmt(v.date)}</td><td>{v.givenBy}</td></tr>)}</tbody>
+          <tbody>{(pig.vaccinations || []).map((v, i) => <tr key={i}><td>{v.name}</td><td>{fmt(v.date)}</td><td>{v.givenBy}</td></tr>)}</tbody>
         </table>
       </div>
       <div className="section-card">
         <h4>🌾 Feed Notes & Plans</h4>
-        {pig.feedNotes.length === 0 ? <div className="empty">No feed notes yet.</div> : (
+        {(pig.feedNotes || []).length === 0 ? <div className="empty">No feed notes yet.</div> : (
           <table>
             <thead><tr><th>Date</th><th>Note</th></tr></thead>
-            <tbody>{pig.feedNotes.map((f, i) => <tr key={i}><td>{fmt(f.date)}</td><td>{f.note}</td></tr>)}</tbody>
+            <tbody>{(pig.feedNotes || []).map((f, i) => <tr key={i}><td>{fmt(f.date)}</td><td>{f.note}</td></tr>)}</tbody>
           </table>
         )}
       </div>
       <div className="section-card">
         <h4>🏆 Show Results</h4>
-        {pig.showResults.length === 0 ? <div className="empty">No show results recorded yet.</div> : (
+        {(pig.showResults || []).length === 0 ? <div className="empty">No show results recorded yet.</div> : (
           <table>
             <thead><tr><th>Show</th><th>Date</th><th>Class</th><th>Placing</th></tr></thead>
-            <tbody>{pig.showResults.map((r, i) => <tr key={i}><td>{r.show}</td><td>{fmt(r.date)}</td><td>{r.class}</td><td><strong>{r.placing}</strong></td></tr>)}</tbody>
+            <tbody>{(pig.showResults || []).map((r, i) => <tr key={i}><td>{r.show}</td><td>{fmt(r.date)}</td><td>{r.class}</td><td><strong>{r.placing}</strong></td></tr>)}</tbody>
           </table>
         )}
       </div>
@@ -1486,7 +1486,7 @@ function ShowmenView({ data, setView, onAddShowman, onEditShowman, onDeleteShowm
                 {data.pigs.filter(p => !p.sold).map(p => {
                   const litter = data.litters.find(l => l.id === p.litterId);
                   const sow = data.sows.find(s => s.id === litter?.sowId);
-                  const latest = p.weightLog[p.weightLog.length - 1];
+                  const latest = (p.weightLog || []).length > 0 ? (p.weightLog || [])[(p.weightLog || []).length - 1] : null;
                   return (
                     <tr key={p.id} style={{ cursor: "pointer" }} onClick={() => setView({ page: "pigDetail", id: p.id })}>
                       <td><strong style={{ color: "var(--blue-bright)" }}>{p.tag}</strong></td>
@@ -1494,7 +1494,7 @@ function ShowmenView({ data, setView, onAddShowman, onEditShowman, onDeleteShowm
                       <td style={{ fontSize: "0.82rem" }}>{p.color}</td>
                       <td>{sow?.name}</td>
                       <td>{latest ? `${latest.weight} lbs` : "—"}</td>
-                      <td style={{ fontWeight: 700, color: "var(--green)", fontSize: "1rem" }}>${p.purchasePrice.toLocaleString()}</td>
+                      <td style={{ fontWeight: 700, color: "var(--green)", fontSize: "1rem" }}>${(p.purchasePrice || 0).toLocaleString()}</td>
                       <td style={{ color: "var(--muted)", fontSize: "0.82rem" }}>{fmt(litter?.farrowDate)}</td>
                     </tr>
                   );
@@ -2453,7 +2453,7 @@ function WeightChart({ weightLog, targetWeight, showDate }) {
   // Actual weight path
   const pts = weightLog.map(w => `${toX(w.date)},${toY(w.weight)}`).join(" L ");
   const pathD = `M ${pts}`;
-  const areaD = `M ${toX(weightLog[0].date)},${PAD.top + cH} L ${pts} L ${toX(weightLog[weightLog.length - 1].date)},${PAD.top + cH} Z`;
+  const areaD = weightLog.length > 0 ? `M ${toX(weightLog[0].date)},${PAD.top + cH} L ${pts} L ${toX(weightLog[weightLog.length - 1].date)},${PAD.top + cH} Z` : '';
 
   // Target line
   const targetY = targetWeight ? toY(targetWeight) : null;
@@ -2582,8 +2582,8 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
   const litter = data.litters.find(l => l.id === pig.litterId);
   const sow = data.sows.find(s => s.id === litter?.sowId);
   const boar = data.boars.find(b => b.id === litter?.boarId);
-  const latest = pig.weightLog[pig.weightLog.length - 1];
-  const firstWeight = pig.weightLog[0];
+  const latest = (pig.weightLog || []).length > 0 ? (pig.weightLog || [])[(pig.weightLog || []).length - 1] : null;
+  const firstWeight = (pig.weightLog || [])[0];
   const gain = latest && firstWeight ? (latest.weight - firstWeight.weight).toFixed(1) : null;
 
   const showmanExpenses = pig.showmanExpenses || [];
@@ -2601,7 +2601,7 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
   // Handlers
   const addWeight = () => {
     if (!newWeightVal || !newWeightDate) return;
-    const updated = { ...pig, weightLog: [...pig.weightLog, { date: newWeightDate, weight: parseFloat(newWeightVal), notes: newWeightNote.trim() || "" }].sort((a, b) => new Date(a.date) - new Date(b.date)) };
+    const updated = { ...pig, weightLog: [...(pig.weightLog || []), { date: newWeightDate, weight: parseFloat(newWeightVal), notes: newWeightNote.trim() || "" }].sort((a, b) => new Date(a.date) - new Date(b.date)) };
     onUpdatePig(updated);
     setNewWeightVal(""); setNewWeightNote(""); setShowAddWeight(false);
   };
@@ -2689,7 +2689,7 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
   );
 
   // Header thumbnail — last photo or emoji
-  const headerPhoto = pig.photos?.[pig.photos.length - 1];
+  const headerPhoto = pig.photos?.[(pig.photos || []).length - 1];
 
   return (
     <div style={{ background: "var(--card-bg)", borderRadius: 16, border: "1px solid var(--border)", overflow: "hidden", marginBottom: 20 }}>
@@ -2747,7 +2747,7 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
                     { label: "Dam", val: sow?.name || "—" },
                     { label: "Birth Weight", val: firstWeight ? `${firstWeight.weight} lbs` : "—" },
                     { label: "Total Gain", val: gain ? `+${gain} lbs` : "—" },
-                    { label: "Shows Entered", val: pig.showResults.length || 0 },
+                    { label: "Shows Entered", val: (pig.showResults || []).length || 0 },
                     { label: "My Expenses", val: totalExpenses > 0 ? `$${totalExpenses.toFixed(0)}` : "—" },
                   ].map(s => (
                     <div key={s.label} style={{ background: "var(--surface)", borderRadius: 9, padding: "10px 14px" }}>
@@ -2819,10 +2819,10 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
                   </AddRow>
                 )}
                 <div style={{ background: "var(--surface)", borderRadius: 10, overflow: "hidden" }}>
-                  {pig.weightLog.length === 0 ? <div className="empty">No weight entries yet.</div> : (
+                  {(pig.weightLog || []).length === 0 ? <div className="empty">No weight entries yet.</div> : (
                     <table>
                       <thead><tr><th>Date</th><th>Weight (lbs)</th><th>Notes</th></tr></thead>
-                      <tbody>{[...pig.weightLog].reverse().map((w, i) => (
+                      <tbody>{[...(pig.weightLog || [])].reverse().map((w, i) => (
                         <tr key={i}>
                           <td>{fmt(w.date)}</td>
                           <td><strong style={{ color: i === 0 ? "var(--green)" : "var(--text)" }}>{w.weight}</strong>{i === 0 && <span style={{ fontSize: "0.65rem", color: "var(--green)", marginLeft: 6, fontWeight: 700 }}>▲ latest</span>}</td>
@@ -2846,10 +2846,10 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
                   </AddRow>
                 )}
                 <div style={{ background: "var(--surface)", borderRadius: 10, overflow: "hidden" }}>
-                  {pig.feedNotes.length === 0 ? <div className="empty">No feed notes yet. Add your first entry to start tracking your feed program.</div> : (
+                  {(pig.feedNotes || []).length === 0 ? <div className="empty">No feed notes yet. Add your first entry to start tracking your feed program.</div> : (
                     <table>
                       <thead><tr><th>Date</th><th>Note</th></tr></thead>
-                      <tbody>{[...pig.feedNotes].reverse().map((f, i) => <tr key={i}><td>{fmt(f.date)}</td><td>{f.note}</td></tr>)}</tbody>
+                      <tbody>{[...(pig.feedNotes || [])].reverse().map((f, i) => <tr key={i}><td>{fmt(f.date)}</td><td>{f.note}</td></tr>)}</tbody>
                     </table>
                   )}
                 </div>
@@ -2870,10 +2870,10 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
                   </AddRow>
                 )}
                 <div style={{ background: "var(--surface)", borderRadius: 10, overflow: "hidden" }}>
-                  {pig.vaccinations.length === 0 ? <div className="empty">No vaccinations logged yet.</div> : (
+                  {(pig.vaccinations || []).length === 0 ? <div className="empty">No vaccinations logged yet.</div> : (
                     <table>
                       <thead><tr><th>Vaccine</th><th>Date</th><th>Given By</th></tr></thead>
-                      <tbody>{pig.vaccinations.map((v, i) => <tr key={i}><td>{v.name}</td><td>{fmt(v.date)}</td><td>{v.givenBy}</td></tr>)}</tbody>
+                      <tbody>{(pig.vaccinations || []).map((v, i) => <tr key={i}><td>{v.name}</td><td>{fmt(v.date)}</td><td>{v.givenBy}</td></tr>)}</tbody>
                     </table>
                   )}
                 </div>
@@ -2897,10 +2897,10 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
                   </AddRow>
                 )}
                 <div style={{ background: "var(--surface)", borderRadius: 10, overflow: "hidden" }}>
-                  {pig.showResults.length === 0 ? <div className="empty">No show results yet. Add your first placing!</div> : (
+                  {(pig.showResults || []).length === 0 ? <div className="empty">No show results yet. Add your first placing!</div> : (
                     <table>
                       <thead><tr><th>Show</th><th>Date</th><th>Class</th><th>Placing</th></tr></thead>
-                      <tbody>{pig.showResults.map((r, i) => <tr key={i}><td>{r.show}</td><td>{fmt(r.date)}</td><td>{r.class}</td><td><strong style={{ color: "var(--amber)" }}>{r.placing}</strong></td></tr>)}</tbody>
+                      <tbody>{(pig.showResults || []).map((r, i) => <tr key={i}><td>{r.show}</td><td>{fmt(r.date)}</td><td>{r.class}</td><td><strong style={{ color: "var(--amber)" }}>{r.placing}</strong></td></tr>)}</tbody>
                     </table>
                   )}
                 </div>
@@ -3312,9 +3312,10 @@ const saveSow = async (sow) => {
   }
 }
 
-const deleteSow = (id) => {
-  if (!window.confirm("Delete this sow? This won't delete associated litters or pigs.")) return;
-  setData(prev => ({ ...prev, sows: prev.sows.filter(s => s.id !== id) }));
+const deleteSow = async (id) => {
+  if (!window.confirm("Delete this sow? Associated litters and pigs will remain.")) return;
+  await supabase.from('sows').delete().eq('id', id)
+  setData(prev => ({ ...prev, sows: prev.sows.filter(s => s.id !== id) }))
 };
 const saveBoar = async (boar) => {
   const boarData = {
@@ -3341,9 +3342,10 @@ const saveBoar = async (boar) => {
   }
 }
 
-const deleteBoar = (id) => {
+const deleteBoar = async (id) => {
   if (!window.confirm("Delete this boar?")) return;
-  setData(prev => ({ ...prev, boars: prev.boars.filter(b => b.id !== id) }));
+  await supabase.from('boars').delete().eq('id', id)
+  setData(prev => ({ ...prev, boars: prev.boars.filter(b => b.id !== id) }))
 };
 const saveShowman = async (sm) => {
   const customerData = {
@@ -3369,8 +3371,9 @@ const saveShowman = async (sm) => {
     }
   }
 }
-  const deleteShowman = (id) => {
+  const deleteShowman = async (id) => {
     if (!window.confirm("Delete this customer?")) return;
+    await supabase.from('customers').delete().eq('id', id)
     setData(prev => {
       const sm = prev.showmen.find(s => s.id === id);
       const updatedPigs = prev.pigs.map(p => sm?.pigIds?.includes(p.id) ? { ...p, sold: false, showmanName: null, showmanContact: null, showmanPhone: null } : p);
