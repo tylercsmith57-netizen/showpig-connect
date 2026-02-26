@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { supabase } from './supabaseClient';
 
 // ─── MOCK DATA ──────────────────────────────────────────────────────────────
 const initialData = {
@@ -3117,21 +3118,23 @@ function CustomerLogin({ data, onLogin, onBack }) {
 
 // ─── BREEDER LOGIN ─────────────────────────────────────────────────────────────
 function BreederLogin({ onLogin, onBack }) {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  // Demo password — in production this would be real auth
-  const DEMO_PASSWORD = "breeder123";
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setError("");
+    if (!email.trim()) { setError("Please enter your email."); return; }
     if (!password.trim()) { setError("Please enter your password."); return; }
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      if (password === DEMO_PASSWORD) { onLogin(); }
-      else { setError("Incorrect password. (Hint: try 'breeder123')"); }
-    }, 500);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (error) {
+      setError("Invalid email or password.");
+    } else {
+      onLogin();
+    }
   };
 
   return (
@@ -3149,8 +3152,12 @@ function BreederLogin({ onLogin, onBack }) {
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div>
+              <label style={labelStyle}>Email</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && handleLogin()} placeholder="you@example.com" style={inputStyle} autoFocus />
+            </div>
+            <div>
               <label style={labelStyle}>Password</label>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handleLogin()} placeholder="••••••••" style={inputStyle} autoFocus />
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handleLogin()} placeholder="••••••••" style={inputStyle} />
             </div>
             {error && (
               <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 8, padding: "10px 14px", fontSize: "0.8rem", color: "var(--red)" }}>
@@ -3161,15 +3168,11 @@ function BreederLogin({ onLogin, onBack }) {
               {loading ? "Signing in..." : "Enter Dashboard →"}
             </button>
           </div>
-          <div style={{ marginTop: 20, padding: "12px 14px", background: "var(--surface)", borderRadius: 8, fontSize: "0.73rem", color: "var(--muted)", lineHeight: 1.6, textAlign: "center" }}>
-            <strong style={{ color: "var(--text)" }}>Demo password:</strong> breeder123
-          </div>
         </div>
       </div>
     </div>
   );
 }
-
 // ─── LANDING PAGE ─────────────────────────────────────────────────────────────
 function LandingPage({ onSelectBreeder, onSelectCustomer, farmName }) {
   return (
