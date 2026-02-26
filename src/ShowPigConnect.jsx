@@ -361,7 +361,7 @@ function DaysChip({ days }) {
 }
 
 // ─── CYCLE TIMELINE ───────────────────────────────────────────────────────────
-function CycleTimeline({ cycle, boars, onMarkMissed, onConfirmConceived }) {
+function CycleTimeline({ cycle, boars, onMarkMissed, onConfirmConceived, onDeleteCycle }) {
   const calc = cycleCalc(cycle);
   const boar = boars.find(b => b.id === cycle.sireId);
   const today = new Date(); today.setHours(0,0,0,0);
@@ -428,6 +428,11 @@ function CycleTimeline({ cycle, boars, onMarkMissed, onConfirmConceived }) {
               ✓ Confirm Conceived
             </button>
           )}
+          {onDeleteCycle && (
+            <button onClick={() => onDeleteCycle(cycle.id)} style={{ padding: "6px 14px", borderRadius: 7, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.08)", color: "var(--red)", cursor: "pointer", fontFamily: "'Space Grotesk', sans-serif", fontSize: "0.75rem", fontWeight: 700 }}>
+              🗑 Delete
+            </button>
+          )}
           {onMarkMissed && (
             <button onClick={() => onMarkMissed(cycle.id)} style={{ padding: "6px 14px", borderRadius: 7, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.08)", color: "var(--red)", cursor: "pointer", fontFamily: "'Space Grotesk', sans-serif", fontSize: "0.75rem", fontWeight: 700 }}>
               ✗ Did Not Conceive
@@ -452,6 +457,11 @@ function CycleTimeline({ cycle, boars, onMarkMissed, onConfirmConceived }) {
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {calc.status === "gestating" && calc.dueDaysFromNow !== null && <DaysChip days={calc.dueDaysFromNow} />}
+          {onDeleteCycle && (
+            <button onClick={() => onDeleteCycle(cycle.id)} style={{ padding: "6px 14px", borderRadius: 7, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.08)", color: "var(--red)", cursor: "pointer", fontFamily: "'Space Grotesk', sans-serif", fontSize: "0.75rem", fontWeight: 700 }}>
+              🗑 Delete
+            </button>
+          )}
         </div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: calc.status === "gestating" ? 12 : 0 }}>
@@ -852,7 +862,7 @@ function SowsView({ data, setView, onAddExpense, onAddSow, onEditSow, onDeleteSo
 }
 
 // ─── SOW DETAIL ───────────────────────────────────────────────────────────────
-function SowDetail({ data, id, setView, onAddExpense, onLogBreed, onMarkMissed, onConfirmConceived, onRecordFarrow }) {
+function SowDetail({ data, id, setView, onAddExpense, onLogBreed, onMarkMissed, onConfirmConceived, onRecordFarrow, onDeleteCycle }) {
   const sow = data.sows.find(s => s.id === id);
   if (!sow) return <div className="empty">Sow not found.</div>;
   const litters = data.litters.filter(l => l.sowId === id);
@@ -958,7 +968,7 @@ function SowDetail({ data, id, setView, onAddExpense, onLogBreed, onMarkMissed, 
           ? <div className="empty" style={{ padding: 20 }}>No breeding cycles recorded.</div>
           : cycles.slice().reverse().map(cycle => (
               <div key={cycle.id} style={{ marginBottom: 10 }}>
-                <CycleTimeline cycle={cycle} boars={data.boars} onMarkMissed={cycleId => onMarkMissed && onMarkMissed(sow.id, cycleId)} onConfirmConceived={cycleId => onConfirmConceived && onConfirmConceived(sow.id, cycleId)} />
+                <CycleTimeline cycle={cycle} boars={data.boars} onMarkMissed={cycleId => onMarkMissed && onMarkMissed(sow.id, cycleId)} onConfirmConceived={cycleId => onConfirmConceived && onConfirmConceived(sow.id, cycleId)} onDeleteCycle={cycleId => onDeleteCycle && onDeleteCycle(sow.id, cycleId)} />
               </div>
             ))
         }
@@ -3825,18 +3835,62 @@ useEffect(() => {
   const [farmId, setFarmId] = useState(null)
 
   // Data mutations
-  const logBreedDate = (sowId, cycle, autoExpenses = []) => {
+  const logBreedDate = async (sowId, cycle, autoExpenses = []) => {
+    const cycleData = {
+      farm_id: farmId,
+      sow_id: sowId,
+      boar_id: cycle.sireId || null,
+      breed_date: cycle.breedDate,
+      method: cycle.method || 'Natural',
+      doses: cycle.doses || 1,
+      notes: cycle.notes || null,
+      conceived: cycle.conceived || false,
+      conceive_date: cycle.conceiveDate || null,
+      farrow_date_actual: cycle.expectedFarrowDate || cycle.farrowDateActual || null,
+      missed: cycle.missed || false,
+      missed_date: cycle.missedDate || null,
+    }
+    const { data: newCycle } = await supabase.from('breeding_cycles').insert(cycleData).select().single()
+    const cycleWithId = newCycle ? { ...cycle, id: newCycle.id } : { id: uid(), ...cycle }
+
+    if (autoExpenses.length > 0) {
+      const expenseRows = autoExpenses.map(e => ({
+        farm_id: farmId,
+        sow_id: e.sowId,
+        date: e.cost.date,
+        category: e.cost.category,
+        description: e.cost.description,
+        amount: e.cost.amount,
+      }))
+      await supabase.from('sow_expenses').insert(expenseRows)
+    }
+
     setData(prev => {
-      let updated = { ...prev, sows: prev.sows.map(s => s.id !== sowId ? s : { ...s, breedingCycles: [...(s.breedingCycles || []), { id: uid(), ...cycle }] }) };
+      let updated = { ...prev, sows: prev.sows.map(s => s.id !== sowId ? s : { ...s, breedingCycles: [...(s.breedingCycles || []), cycleWithId] }) };
       if (autoExpenses.length > 0) {
         updated = { ...updated, sows: updated.sows.map(s => { const mine = autoExpenses.filter(e => e.sowId === s.id); return mine.length === 0 ? s : { ...s, costs: [...(s.costs || []), ...mine.map(e => e.cost)] }; }) };
       }
       return updated;
     });
   };
-  const addExpenses = (entries) => {
+  const addExpenses = async (entries) => {
+    const expenseRows = entries.map(e => ({
+      farm_id: farmId,
+      sow_id: e.sowId,
+      date: e.cost.date,
+      category: e.cost.category,
+      description: e.cost.description,
+      amount: e.cost.amount,
+    }))
+    await supabase.from('sow_expenses').insert(expenseRows)
     setData(prev => ({ ...prev, sows: prev.sows.map(s => { const mine = entries.filter(e => e.sowId === s.id); return mine.length === 0 ? s : { ...s, costs: [...(s.costs || []), ...mine.map(e => e.cost)] }; }) }));
   };
+const deleteCycle = async (sowId, cycleId) => {
+  if (!window.confirm("Delete this breeding cycle? This cannot be undone.")) return;
+  await supabase.from('breeding_cycles').delete().eq('id', cycleId)
+  setData(prev => ({ ...prev, sows: prev.sows.map(s => s.id !== sowId ? s : { ...s, breedingCycles: (s.breedingCycles || []).filter(c => c.id !== cycleId) }) }))
+}
+
 const saveSow = async (sow) => {
   const sowData = {
     farm_id: farmId,
@@ -4001,7 +4055,7 @@ const saveShowman = async (sm) => {
     switch (view.page) {
       case "dashboard": return <Dashboard data={data} />;
       case "sows": return <SowsView data={data} setView={setView} onAddExpense={(id) => { setExpenseDefaultSow(id); setShowExpenseModal(true); }} onAddSow={() => { setEditSow(null); setShowSowModal(true); }} onEditSow={(sow) => { setEditSow(sow); setShowSowModal(true); }} onDeleteSow={deleteSow} />;
-      case "sowDetail": return <SowDetail data={data} id={view.id} setView={setView} onAddExpense={(id) => { setExpenseDefaultSow(id); setShowExpenseModal(true); }} onLogBreed={(id) => { setBreedDefaultSow(id); setShowBreedModal(true); }} onRecordFarrow={(id) => { setFarrowDefaultSow(id); setShowFarrowModal(true); }} onMarkMissed={(sowId, cycleId) => setData(prev => ({ ...prev, sows: prev.sows.map(s => s.id !== sowId ? s : { ...s, breedingCycles: (s.breedingCycles||[]).map(c => c.id !== cycleId ? c : { ...c, missed: true, missedDate: new Date().toISOString().split("T")[0] }) }) }))} onConfirmConceived={(sowId, cycleId) => setData(prev => ({ ...prev, sows: prev.sows.map(s => s.id !== sowId ? s : { ...s, breedingCycles: (s.breedingCycles||[]).map(c => c.id !== cycleId ? c : { ...c, conceived: true, conceiveDate: new Date().toISOString().split("T")[0] }) }) }))} />;
+      case "sowDetail": return <SowDetail data={data} id={view.id} setView={setView} onAddExpense={(id) => { setExpenseDefaultSow(id); setShowExpenseModal(true); }} onLogBreed={(id) => { setBreedDefaultSow(id); setShowBreedModal(true); }} onRecordFarrow={(id) => { setFarrowDefaultSow(id); setShowFarrowModal(true); }} onMarkMissed={(sowId, cycleId) => setData(prev => ({ ...prev, sows: prev.sows.map(s => s.id !== sowId ? s : { ...s, breedingCycles: (s.breedingCycles||[]).map(c => c.id !== cycleId ? c : { ...c, missed: true, missedDate: new Date().toISOString().split("T")[0] }) }) }))} onConfirmConceived={(sowId, cycleId) => setData(prev => ({ ...prev, sows: prev.sows.map(s => s.id !== sowId ? s : { ...s, breedingCycles: (s.breedingCycles||[]).map(c => c.id !== cycleId ? c : { ...c, conceived: true, conceiveDate: new Date().toISOString().split("T")[0] }) }) }))} onDeleteCycle={deleteCycle} />;
       case "litterDetail": return <LitterDetail data={data} id={view.id} setView={setView} onUpdateLitter={() => {}} onAddPigToLitter={(litterId) => { setAddPigLitterId(litterId); setShowAddPigModal(true); }} />;
       case "boars": return <BoarsView data={data} onAddBoar={() => { setEditBoar(null); setShowBoarModal(true); }} onEditBoar={(boar) => { setEditBoar(boar); setShowBoarModal(true); }} onDeleteBoar={deleteBoar} />;
       case "breeding": return <BreedingCalendar data={data} setView={setView} onLogBreed={(id) => { setBreedDefaultSow(id); setShowBreedModal(true); }} />;
