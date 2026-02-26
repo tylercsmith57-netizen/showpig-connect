@@ -2,7 +2,18 @@ import { useState, useRef, useEffect } from "react";
 import { supabase } from './supabaseClient';
 import { loadFarmData } from './db'
 
-// ─── MOCK DATA ──────────────────────────────────────────────────────────────
+// ─── HEROICONS (SOLID) ────────────────────────────────────────────────────────
+const IconDashboard = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z"/><path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z"/></svg>
+const IconSow = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path fillRule="evenodd" d="M3 6.75A.75.75 0 0 1 3.75 6h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 6.75ZM3 12a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 12Zm0 5.25a.75.75 0 0 1 .75-.75H12a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75Z" clipRule="evenodd"/></svg>
+const IconBoar = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M3.375 4.5C2.339 4.5 1.5 5.34 1.5 6.375V13.5h12V6.375c0-1.036-.84-1.875-1.875-1.875h-8.25zM13.5 15h-12v2.625c0 1.035.84 1.875 1.875 1.875h.375a3 3 0 116 0h3a.75.75 0 00.75-.75V15z"/><path d="M8.25 19.5a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0zM15.75 6.75a.75.75 0 00-.75.75v11.25c0 .087.015.17.042.248a3 3 0 015.958.464c.853-.175 1.522-.935 1.464-1.883a18.659 18.659 0 00-3.732-10.104 1.837 1.837 0 00-1.47-.725H15.75z"/><path d="M19.5 19.5a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z"/></svg>
+const IconCalendar = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path fillRule="evenodd" d="M6.75 2.25A.75.75 0 017.5 3v1.5h9V3A.75.75 0 0118 3v1.5h.75a3 3 0 013 3v11.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V7.5a3 3 0 013-3H6V3a.75.75 0 01.75-.75zm13.5 9a1.5 1.5 0 00-1.5-1.5H5.25a1.5 1.5 0 00-1.5 1.5v7.5a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5v-7.5z" clipRule="evenodd"/></svg>
+const IconPigs = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M5.625 3.75a2.625 2.625 0 100 5.25h12.75a2.625 2.625 0 000-5.25H5.625zM3.75 11.25a.75.75 0 000 1.5h16.5a.75.75 0 000-1.5H3.75zM3 15.75a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75zM3.75 18.75a.75.75 0 000 1.5h16.5a.75.75 0 000-1.5H3.75z"/></svg>
+const IconCustomers = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M4.5 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM14.25 8.625a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0zM1.5 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122zM17.25 19.128l-.001.144a2.25 2.25 0 01-.233.96 10.088 10.088 0 005.06-1.01.75.75 0 00.42-.643 4.875 4.875 0 00-6.957-4.611 8.586 8.586 0 011.71 5.157v.003z"/></svg>
+const IconReports = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75zM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 01-1.875-1.875V8.625zM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 013 19.875v-6.75z"/></svg>
+const IconMyPigs = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M5.625 3.75a2.625 2.625 0 100 5.25h12.75a2.625 2.625 0 000-5.25H5.625zM3.75 11.25a.75.75 0 000 1.5h16.5a.75.75 0 000-1.5H3.75zM3 15.75a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75zM3.75 18.75a.75.75 0 000 1.5h16.5a.75.75 0 000-1.5H3.75z"/></svg>
+const IconTasks = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path fillRule="evenodd" d="M7.502 6h7.128A3.375 3.375 0 0118 9.375v9.375a3 3 0 003-3V6.108c0-1.505-1.125-2.811-2.664-2.94a48.972 48.972 0 00-.673-.05A3 3 0 0015 1.5h-1.5a3 3 0 00-2.663 1.618c-.225.015-.45.032-.673.05C8.662 3.295 7.554 4.542 7.502 6zM13.5 3A1.5 1.5 0 0012 4.5h4.5A1.5 1.5 0 0015 3h-1.5z" clipRule="evenodd"/><path fillRule="evenodd" d="M3 9.375C3 8.339 3.84 7.5 4.875 7.5h9.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 013 20.625V9.375zm9.586 4.594a.75.75 0 00-1.172-.938l-2.476 3.096-.908-.907a.75.75 0 00-1.06 1.06l1.5 1.5a.75.75 0 001.116-.062l3-3.75z" clipRule="evenodd"/></svg>
+
+//  MOCK DATA 
 const initialData = {
   farm: { name: "Ridgeline Show Pigs", owner: "Jake Harmon", location: "Abilene, TX" },
   sows: [
@@ -129,12 +140,12 @@ const initialData = {
   ],
 };
 
-// ─── HELPERS ────────────────────────────────────────────────────────────────
+//  HELPERS 
 const fmt = (d) => d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
-const sexIcon = (s) => s === "Barrow" ? "♂" : s === "Gilt" ? "♀" : "—";
+const sexIcon = (s) => s === "Barrow" ? "" : s === "Gilt" ? "" : "—";
 const uid = () => `id-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
-// ─── BREEDING HELPERS ────────────────────────────────────────────────────────
+//  BREEDING HELPERS 
 const GESTATION_DAYS = 114;
 const WEAN_TO_ESTRUS_DAYS = 7;
 const HEAT_INTERVAL_DAYS = 21;
@@ -209,12 +220,12 @@ const sowNextCycle = (sow, litters) => {
   return { projNextBreed, projDueDate, nextScheduled, lastFarrowed, lastWeanDate, cycles };
 };
 
-// ─── COST DATA ───────────────────────────────────────────────────────────────
+//  COST DATA 
 const COST_CATEGORIES = {
-  feed:     { label: "Feed & Supplies", icon: "🌾", color: "#60a5fa" },
-  vet:      { label: "Vet & Medications", icon: "🩺", color: "#a78bfa" },
-  vaccine:  { label: "Vaccinations", icon: "💉", color: "#34d399" },
-  breeding: { label: "Breeding Fees", icon: "🐗", color: "#fb923c" },
+  feed:     { label: "Feed & Supplies", icon: "feed", color: "#60a5fa" },
+  vet:      { label: "Vet & Medications", icon: "vet", color: "#a78bfa" },
+  vaccine:  { label: "Vaccinations", icon: "vaccine", color: "#34d399" },
+  breeding: { label: "Breeding Fees", icon: "", color: "#fb923c" },
 };
 
 function sowCashKPIs(sow, data) {
@@ -236,7 +247,7 @@ function sowCashKPIs(sow, data) {
   return { totalRevenue, pipeline, avgPrice, soldCount: soldPigs.length, availCount: availPigs.length, totalPigs: pigs.length, litters, totalCosts, costByCategory, netProfit, margin, costPerWeaned, costs };
 }
 
-// ─── CSS ─────────────────────────────────────────────────────────────────────
+//  CSS 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -338,13 +349,13 @@ const labelStyle = { display: "block", fontSize: "0.72rem", fontWeight: 600, tex
 const inputStyle = { width: "100%", padding: "9px 12px", border: "1px solid var(--border)", borderRadius: 8, fontFamily: "'Space Grotesk', sans-serif", fontSize: "0.9rem", color: "var(--text)", background: "var(--surface)", outline: "none" };
 const textareaStyle = { ...inputStyle, resize: "vertical", minHeight: 72 };
 
-// ─── STATUS PILLS ─────────────────────────────────────────────────────────────
+//  STATUS PILLS 
 function StatusPill({ status }) {
   const map = {
     scheduled: { bg: "rgba(59,130,246,0.12)", color: "var(--blue-bright)", border: "rgba(59,130,246,0.3)", label: "Scheduled" },
-    bred:       { bg: "rgba(168,85,247,0.12)", color: "#c084fc",            border: "rgba(168,85,247,0.3)",  label: "Bred — Pending ✓" },
+    bred:       { bg: "rgba(168,85,247,0.12)", color: "#c084fc",            border: "rgba(168,85,247,0.3)",  label: "Bred — Pending " },
     gestating:  { bg: "rgba(245,158,11,0.1)",  color: "var(--amber)",       border: "rgba(245,158,11,0.25)", label: "Gestating" },
-    farrowed:   { bg: "rgba(16,185,129,0.1)",  color: "var(--green)",       border: "rgba(16,185,129,0.25)", label: "Farrowed ✓" },
+    farrowed:   { bg: "rgba(16,185,129,0.1)",  color: "var(--green)",       border: "rgba(16,185,129,0.25)", label: "Farrowed " },
     missed:     { bg: "rgba(239,68,68,0.1)",   color: "var(--red)",         border: "rgba(239,68,68,0.3)",   label: "Did Not Conceive" },
     open:       { bg: "rgba(245,158,11,0.1)",  color: "var(--amber)",       border: "rgba(245,158,11,0.3)",  label: "Open Cycle" },
   };
@@ -360,7 +371,7 @@ function DaysChip({ days }) {
   return <span style={{ fontSize: "0.72rem", fontWeight: 700, color }}>{label}</span>;
 }
 
-// ─── CYCLE TIMELINE ───────────────────────────────────────────────────────────
+//  CYCLE TIMELINE 
 function CycleTimeline({ cycle, boars, onMarkMissed, onConfirmConceived, onDeleteCycle }) {
   const calc = cycleCalc(cycle);
   const boar = boars.find(b => b.id === cycle.sireId);
@@ -372,11 +383,11 @@ function CycleTimeline({ cycle, boars, onMarkMissed, onConfirmConceived, onDelet
       <div style={{ background: "rgba(245,158,11,0.06)", borderRadius: 10, padding: "14px 16px", border: "1px solid rgba(245,158,11,0.2)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, flexWrap: "wrap", gap: 8 }}>
           <StatusPill status="open" />
-          {heatDays !== null && heatDays >= 0 && <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#f87171" }}>🔥 Heat in {heatDays}d</span>}
+          {heatDays !== null && heatDays >= 0 && <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#f87171" }}>Heat in {heatDays}d</span>}
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           <div><div style={{ fontSize: "0.62rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 3 }}>Open Date</div><div style={{ fontSize: "0.88rem", fontWeight: 600 }}>{fmt(cycle.openDate)}</div></div>
-          <div><div style={{ fontSize: "0.62rem", color: "#f87171", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 3 }}>🔥 Next Heat</div><div style={{ fontSize: "0.88rem", fontWeight: 600, color: "#f87171" }}>{nextHeat ? fmt(nextHeat) : "—"}</div></div>
+          <div><div style={{ fontSize: "0.62rem", color: "#f87171", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 3 }}>Next Heat</div><div style={{ fontSize: "0.88rem", fontWeight: 600, color: "#f87171" }}>{nextHeat ? fmt(nextHeat) : "—"}</div></div>
         </div>
         {cycle.notes && <div style={{ marginTop: 8, fontSize: "0.75rem", color: "var(--muted)", fontStyle: "italic" }}>"{cycle.notes}"</div>}
       </div>
@@ -395,7 +406,7 @@ function CycleTimeline({ cycle, boars, onMarkMissed, onConfirmConceived, onDelet
     );
   }
 
-  // ── Bred but NOT YET confirmed conceived ─────────────────────────────
+  //  Bred but NOT YET confirmed conceived 
   if (calc.status === 'bred') {
     const daysBred = Math.abs(calc.breedDaysFromNow);
     // Typical recheck window: 18–25 days after breeding
@@ -425,17 +436,17 @@ function CycleTimeline({ cycle, boars, onMarkMissed, onConfirmConceived, onDelet
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {onConfirmConceived && (
             <button onClick={() => onConfirmConceived(cycle.id)} style={{ padding: "6px 14px", borderRadius: 7, border: "1px solid rgba(16,185,129,0.4)", background: "rgba(16,185,129,0.1)", color: "var(--green)", cursor: "pointer", fontFamily: "'Space Grotesk', sans-serif", fontSize: "0.75rem", fontWeight: 700 }}>
-              ✓ Confirm Conceived
+               Confirm Conceived
             </button>
           )}
           {onDeleteCycle && (
             <button onClick={() => onDeleteCycle(cycle.id)} style={{ padding: "6px 14px", borderRadius: 7, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.08)", color: "var(--red)", cursor: "pointer", fontFamily: "'Space Grotesk', sans-serif", fontSize: "0.75rem", fontWeight: 700 }}>
-              🗑 Delete
+              Delete
             </button>
           )}
           {onMarkMissed && (
             <button onClick={() => onMarkMissed(cycle.id)} style={{ padding: "6px 14px", borderRadius: 7, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.08)", color: "var(--red)", cursor: "pointer", fontFamily: "'Space Grotesk', sans-serif", fontSize: "0.75rem", fontWeight: 700 }}>
-              ✗ Did Not Conceive
+               Did Not Conceive
             </button>
           )}
         </div>
@@ -444,7 +455,7 @@ function CycleTimeline({ cycle, boars, onMarkMissed, onConfirmConceived, onDelet
     );
   }
 
-  // ── Confirmed gestating or farrowed ──────────────────────────────────
+  //  Confirmed gestating or farrowed 
   const breedD = new Date(cycle.breedDate);
   const dueD = calc.dueDate ? new Date(calc.dueDate) : null;
   const pct = calc.status === "farrowed" ? 100 : (dueD ? Math.max(0, Math.min(100, Math.round(((today - breedD) / (dueD - breedD)) * 100))) : 0);
@@ -459,7 +470,7 @@ function CycleTimeline({ cycle, boars, onMarkMissed, onConfirmConceived, onDelet
           {calc.status === "gestating" && calc.dueDaysFromNow !== null && <DaysChip days={calc.dueDaysFromNow} />}
           {onDeleteCycle && (
             <button onClick={() => onDeleteCycle(cycle.id)} style={{ padding: "6px 14px", borderRadius: 7, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.08)", color: "var(--red)", cursor: "pointer", fontFamily: "'Space Grotesk', sans-serif", fontSize: "0.75rem", fontWeight: 700 }}>
-              🗑 Delete
+              Delete
             </button>
           )}
         </div>
@@ -490,15 +501,15 @@ function CycleTimeline({ cycle, boars, onMarkMissed, onConfirmConceived, onDelet
   );
 }
 
-// ─── DASHBOARD ────────────────────────────────────────────────────────────────
-// ─── FARM CALENDAR ────────────────────────────────────────────────────────────
+//  DASHBOARD 
+//  FARM CALENDAR 
 const CAL_EVENT_TYPES = {
-  breed:    { label: "Breeding",         color: "#a78bfa", bg: "rgba(167,139,250,0.13)", border: "rgba(167,139,250,0.35)", icon: "🐗" },
-  recheck:  { label: "Preg. Recheck",   color: "#fb923c", bg: "rgba(251,146,60,0.12)",  border: "rgba(251,146,60,0.3)",  icon: "🔬" },
-  due:      { label: "Due Date",         color: "#f59e0b", bg: "rgba(245,158,11,0.13)", border: "rgba(245,158,11,0.3)",  icon: "🤰" },
-  farrow:   { label: "Farrowed",         color: "#34d399", bg: "rgba(52,211,153,0.12)", border: "rgba(52,211,153,0.3)",  icon: "🐖" },
-  wean:     { label: "Wean Date",        color: "#3b82f6", bg: "rgba(59,130,246,0.13)", border: "rgba(59,130,246,0.3)",  icon: "🍼" },
-  heat:     { label: "Expected Heat",    color: "#f472b6", bg: "rgba(244,114,182,0.12)", border: "rgba(244,114,182,0.3)", icon: "🔥" },
+  breed:    { label: "Breeding",         color: "#a78bfa", bg: "rgba(167,139,250,0.13)", border: "rgba(167,139,250,0.35)", icon: "" },
+  recheck:  { label: "Preg. Recheck",   color: "#fb923c", bg: "rgba(251,146,60,0.12)",  border: "rgba(251,146,60,0.3)",  icon: "" },
+  due:      { label: "Due Date",         color: "#f59e0b", bg: "rgba(245,158,11,0.13)", border: "rgba(245,158,11,0.3)",  icon: "" },
+  farrow:   { label: "Farrowed",         color: "#34d399", bg: "rgba(52,211,153,0.12)", border: "rgba(52,211,153,0.3)",  icon: "—" },
+  wean:     { label: "Wean Date",        color: "#3b82f6", bg: "rgba(59,130,246,0.13)", border: "rgba(59,130,246,0.3)",  icon: "" },
+  heat:     { label: "Expected Heat",    color: "#f472b6", bg: "rgba(244,114,182,0.12)", border: "rgba(244,114,182,0.3)", icon: "" },
 };
 
 function buildFarmEvents(data) {
@@ -652,7 +663,7 @@ function FarmCalendar({ data }) {
       {/* Right panel — upcoming events */}
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <div style={{ background: "var(--card-bg)", borderRadius: 16, border: "1px solid var(--border)", padding: "16px 18px" }}>
-          <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--blue-bright)", marginBottom: 12 }}>📅 Next 30 Days</div>
+          <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--blue-bright)", marginBottom: 12 }}> Next 30 Days</div>
           {upcoming.length === 0 ? (
             <div style={{ fontSize: "0.82rem", color: "var(--muted)", textAlign: "center", padding: "20px 0" }}>Nothing scheduled.</div>
           ) : (
@@ -678,22 +689,22 @@ function FarmCalendar({ data }) {
 
         {/* Herd at a glance */}
         <div style={{ background: "var(--card-bg)", borderRadius: 16, border: "1px solid var(--border)", padding: "16px 18px" }}>
-          <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--blue-bright)", marginBottom: 12 }}>🐷 Herd Status</div>
+          <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--blue-bright)", marginBottom: 12 }}>Herd Status</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {data.sows.map(sow => {
               const stage = getSowStage(sow, data.litters);
               const stageConf = {
-                nursing:   { icon: "🍼", color: "#34d399", label: "Nursing" },
-                gestating: { icon: "🤰", color: "#f59e0b", label: "Gestating" },
-                bred:      { icon: "🔬", color: "#c084fc", label: "Bred — Pending ✓" },
-                open:      { icon: "🔓", color: "var(--muted)", label: "Open" },
-              }[stage] || { icon: "❓", color: "var(--muted)", label: stage };
+                nursing:   { icon: "", color: "#34d399", label: "Nursing" },
+                gestating: { icon: "", color: "#f59e0b", label: "Gestating" },
+                bred:      { icon: "", color: "#c084fc", label: "Bred — Pending " },
+                open:      { icon: "open", color: "var(--muted)", label: "Open" },
+              }[stage] || { icon: "", color: "var(--muted)", label: stage };
               const lineage = (sow.sire || sow.damSire) ? `${sow.sire || "?"} × ${sow.damSire || "?"}` : null;
               return (
                 <div key={sow.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 10px", borderRadius: 8, background: "var(--surface)", border: "1px solid var(--border)" }}>
                   <div>
                     <div style={{ fontSize: "0.82rem", fontWeight: 700 }}>{sow.name}</div>
-                    {lineage && <div style={{ fontSize: "0.65rem", color: "var(--muted)" }}>🧬 {lineage}</div>}
+                    {lineage && <div style={{ fontSize: "0.65rem", color: "var(--muted)" }}>{lineage}</div>}
                   </div>
                   <div style={{ fontSize: "0.68rem", fontWeight: 700, color: stageConf.color, textAlign: "right" }}>{stageConf.icon} {stageConf.label}</div>
                 </div>
@@ -733,14 +744,14 @@ function Dashboard({ data }) {
 
       {/* Farm Calendar */}
       <div style={{ marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <h3 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.1rem", color: "var(--text)", letterSpacing: "-0.02em" }}>🗓 Farm Calendar</h3>
+        <h3 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.1rem", color: "var(--text)", letterSpacing: "-0.02em" }}> Farm Calendar</h3>
       </div>
       <FarmCalendar data={data} />
     </div>
   );
 }
 
-// ─── SOWS VIEW ────────────────────────────────────────────────────────────────
+//  SOWS VIEW 
 function SowsView({ data, setView, onAddExpense, onAddSow, onEditSow, onDeleteSow }) {
   const allSowKPIs = data.sows.map(s => sowCashKPIs(s, data));
   const farmRevenue = allSowKPIs.reduce((a, k) => a + k.totalRevenue, 0);
@@ -753,10 +764,10 @@ function SowsView({ data, setView, onAddExpense, onAddSow, onEditSow, onDeleteSo
 
   // Group sows by stage
   const stages = [
-    { key: "nursing",   label: "🍼 Nursing",          color: "#34d399", desc: "Active litter not yet weaned" },
-    { key: "gestating", label: "🤰 Gestating",         color: "var(--amber)", desc: "Confirmed pregnant" },
-    { key: "bred",      label: "🔬 Bred — Pending ✓",  color: "#c084fc", desc: "Bred, awaiting conception check" },
-    { key: "open",      label: "🔓 Open / Needs Breeding", color: "var(--muted)", desc: "Ready to breed" },
+    { key: "nursing",   label: "Nursing",          color: "#34d399", desc: "Active litter not yet weaned" },
+    { key: "gestating", label: "Gestating",         color: "var(--amber)", desc: "Confirmed pregnant" },
+    { key: "bred",      label: "Bred — Pending ",  color: "#c084fc", desc: "Bred, awaiting conception check" },
+    { key: "open",      label: "Open / Needs Breeding", color: "var(--muted)", desc: "Ready to breed" },
   ];
   const sowsByStage = {};
   stages.forEach(s => { sowsByStage[s.key] = []; });
@@ -783,7 +794,7 @@ function SowsView({ data, setView, onAddExpense, onAddSow, onEditSow, onDeleteSo
           <h3>{sow.name}</h3>
           <div className="card-meta">{sow.breed}</div>
           {(sow.sire || sow.damSire) && (
-            <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: 3 }}>🧬 {sow.sire || "?"} × {sow.damSire || "?"}</div>
+            <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: 3 }}>{sow.sire || "?"} × {sow.damSire || "?"}</div>
           )}
           {/* Stage-specific info */}
           {calc && boar && (
@@ -861,7 +872,7 @@ function SowsView({ data, setView, onAddExpense, onAddSow, onEditSow, onDeleteSo
   );
 }
 
-// ─── SOW DETAIL ───────────────────────────────────────────────────────────────
+//  SOW DETAIL 
 function SowDetail({ data, id, setView, onAddExpense, onLogBreed, onMarkMissed, onConfirmConceived, onRecordFarrow, onDeleteCycle }) {
   const sow = data.sows.find(s => s.id === id);
   if (!sow) return <div className="empty">Sow not found.</div>;
@@ -878,15 +889,15 @@ function SowDetail({ data, id, setView, onAddExpense, onLogBreed, onMarkMissed, 
         <div>
           <h2>{sow.name}</h2>
           <p style={{ color: "var(--blue-bright)", marginTop: 4 }}>{sow.breed} · Tag: {sow.tag}</p>
-          {lineage && <p style={{ color: "var(--muted)", marginTop: 3, fontSize: "0.82rem" }}>🧬 {lineage}</p>}
+          {lineage && <p style={{ color: "var(--muted)", marginTop: 3, fontSize: "0.82rem" }}>{lineage}</p>}
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button className="btn btn-success" onClick={() => onRecordFarrow && onRecordFarrow(id)}>🐖 Record Farrow</button>
+          <button className="btn btn-success" onClick={() => onRecordFarrow && onRecordFarrow(id)}>Record Farrow</button>
           <button className="btn btn-primary" onClick={() => onAddExpense(id)}>+ Add Expense</button>
         </div>
       </div>
       <div className="section-card">
-        <h4>🐷 Sow Info</h4>
+        <h4>Sow Info</h4>
         <div className="info-grid">
           <div className="info-item"><label>Tag</label><span>{sow.tag}</span></div>
           <div className="info-item"><label>Breed</label><span>{sow.breed}</span></div>
@@ -900,7 +911,7 @@ function SowDetail({ data, id, setView, onAddExpense, onLogBreed, onMarkMissed, 
 
       {/* P&L */}
       <div className="section-card" style={{ background: "linear-gradient(135deg, #0a1a0e 0%, #0a0f1e 100%)", borderColor: "#1a3a1a" }}>
-        <h4 style={{ color: "var(--blue-bright)" }}>💰 Profit & Loss</h4>
+        <h4 style={{ color: "var(--blue-bright)" }}>Profit & Loss</h4>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 14, marginBottom: 20 }}>
           {[
             { val: `$${kpi.totalRevenue.toLocaleString()}`, label: "Revenue", accent: "var(--green)" },
@@ -938,7 +949,7 @@ function SowDetail({ data, id, setView, onAddExpense, onLogBreed, onMarkMissed, 
       {/* Expense Log */}
       <div className="section-card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <h4 style={{ margin: 0 }}>🧾 Expense Log</h4>
+          <h4 style={{ margin: 0 }}>Expense Log</h4>
           <button className="btn btn-outline" style={{ fontSize: "0.78rem", padding: "5px 12px" }} onClick={() => onAddExpense(id)}>+ Add</button>
         </div>
         {(kpi.costs || []).length === 0 ? <div className="empty">No expenses recorded yet.</div> : (
@@ -961,7 +972,7 @@ function SowDetail({ data, id, setView, onAddExpense, onLogBreed, onMarkMissed, 
       {/* Breeding Cycles */}
       <div className="section-card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <h4 style={{ margin: 0 }}>🗓 Breeding Cycles</h4>
+          <h4 style={{ margin: 0 }}>Breeding Cycles</h4>
           <button className="btn btn-outline" style={{ fontSize: "0.73rem", padding: "5px 10px" }} onClick={() => onLogBreed && onLogBreed(id)}>+ Log Breed</button>
         </div>
         {cycles.length === 0
@@ -976,7 +987,7 @@ function SowDetail({ data, id, setView, onAddExpense, onLogBreed, onMarkMissed, 
 
       {/* Farrowing Records */}
       <div className="section-card">
-        <h4>🗂 Farrowing Records</h4>
+        <h4>Farrowing Records</h4>
         {litters.length === 0 ? <div className="empty">No litters recorded yet.</div> : (
           <table>
             <thead><tr><th>Farrow Date</th><th>Born</th><th>Born Alive</th><th>Weaned</th><th>Age Weaned</th><th>Sire</th></tr></thead>
@@ -997,7 +1008,7 @@ function SowDetail({ data, id, setView, onAddExpense, onLogBreed, onMarkMissed, 
   );
 }
 
-// ─── LITTER DETAIL (IMPROVED) ─────────────────────────────────────────────────
+//  LITTER DETAIL (IMPROVED) 
 function LitterDetail({ data, id, setView, onUpdateLitter, onAddPigToLitter }) {
   const litter = data.litters.find(l => l.id === id);
   if (!litter) return <div className="empty">Litter not found.</div>;
@@ -1043,7 +1054,7 @@ function LitterDetail({ data, id, setView, onUpdateLitter, onAddPigToLitter }) {
 
       {/* Farrowing Details */}
       <div className="section-card">
-        <h4>📋 Farrowing Data</h4>
+        <h4>Farrowing Data</h4>
         <div className="info-grid">
           <div className="info-item"><label>Farrow Date</label><span>{fmt(litter.farrowDate)}</span></div>
           <div className="info-item"><label>Sow</label><span>{sow?.name} ({sow?.tag})</span></div>
@@ -1059,7 +1070,7 @@ function LitterDetail({ data, id, setView, onUpdateLitter, onAddPigToLitter }) {
 
       {/* Litter Vaccinations */}
       <div className="section-card">
-        <h4>💉 Litter Vaccinations</h4>
+        <h4>Litter Vaccinations</h4>
         {litter.vaccinations.length === 0 ? <div className="empty">None recorded.</div> : (
           <table>
             <thead><tr><th>Vaccine</th><th>Date</th><th>Notes</th></tr></thead>
@@ -1071,7 +1082,7 @@ function LitterDetail({ data, id, setView, onUpdateLitter, onAddPigToLitter }) {
       {/* Individual Pigs */}
       <div className="section-card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <h4 style={{ margin: 0 }}>🐖 Individual Pigs in This Litter</h4>
+          <h4 style={{ margin: 0 }}>Individual Pigs in This Litter</h4>
           <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{pigs.length} registered · {soldPigs.length} sold</div>
         </div>
         {pigs.length === 0 ? <div className="empty">No pigs registered yet.</div> : (
@@ -1088,7 +1099,7 @@ function LitterDetail({ data, id, setView, onUpdateLitter, onAddPigToLitter }) {
                     <td>{p.birthWeight} lbs</td>
                     <td>{latest ? `${latest.weight} lbs` : "—"}</td>
                     <td style={{ fontWeight: 600, color: "var(--green)" }}>${(p.purchasePrice || 0).toLocaleString()}</td>
-                    <td><span className={`badge ${p.sold ? "badge-sold" : "badge-available"}`}>{p.sold ? `✓ ${p.showmanName}` : "Available"}</span></td>
+                    <td><span className={`badge ${p.sold ? "badge-sold" : "badge-available"}`}>{p.sold ? ` ${p.showmanName}` : "Available"}</span></td>
                   </tr>
                 );
               })}
@@ -1100,7 +1111,7 @@ function LitterDetail({ data, id, setView, onUpdateLitter, onAddPigToLitter }) {
   );
 }
 
-// ─── PIGS VIEW ────────────────────────────────────────────────────────────────
+//  PIGS VIEW 
 function PigsView({ data, setView, onAddPig }) {
   const [filter, setFilter] = useState("all");
   const filtered = data.pigs.filter(p => filter === "all" ? true : filter === "sold" ? p.sold : !p.sold);
@@ -1134,7 +1145,7 @@ function PigsView({ data, setView, onAddPig }) {
                 <div className="stat"><div className="stat-val">{(pig.showResults || []).length}</div><div className="stat-label">Shows</div></div>
               </div>
               <div style={{ marginTop: 12 }}>
-                <span className={`badge ${pig.sold ? "badge-sold" : "badge-available"}`}>{pig.sold ? `✓ Sold to ${pig.showmanName}` : "● Available"}</span>
+                <span className={`badge ${pig.sold ? "badge-sold" : "badge-available"}`}>{pig.sold ? ` Sold to ${pig.showmanName}` : " Available"}</span>
               </div>
             </div>
           );
@@ -1144,8 +1155,8 @@ function PigsView({ data, setView, onAddPig }) {
   );
 }
 
-// ─── PIG DETAIL ───────────────────────────────────────────────────────────────
-// ─── ASSIGN CUSTOMER MODAL ────────────────────────────────────────────────────
+//  PIG DETAIL 
+//  ASSIGN CUSTOMER MODAL 
 function AssignCustomerModal({ pig, showmen, onAssign, onUnassign, onClose }) {
   const current = showmen.find(sm => (sm.pigIds || []).includes(pig.id));
   const [selected, setSelected] = useState(current?.id || "");
@@ -1158,7 +1169,7 @@ function AssignCustomerModal({ pig, showmen, onAssign, onUnassign, onClose }) {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal-box" style={{ maxWidth: 460 }}>
         <div className="modal-header">
-          <h3>🤠 Assign Customer</h3>
+          <h3>Assign Customer</h3>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <div className="modal-body">
@@ -1190,7 +1201,7 @@ function AssignCustomerModal({ pig, showmen, onAssign, onUnassign, onClose }) {
                     <button key={sm.id} onClick={() => setSelected(isSelected ? "" : sm.id)}
                       style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", borderRadius: 9, border: `1px solid ${isSelected ? "var(--blue-bright)" : isCurrent ? "rgba(16,185,129,0.3)" : "var(--border)"}`, background: isSelected ? "var(--blue-dim)" : isCurrent ? "rgba(16,185,129,0.06)" : "var(--surface)", cursor: "pointer", fontFamily: "'Space Grotesk', sans-serif", textAlign: "left", transition: "all 0.15s" }}>
                       <div>
-                        <div style={{ fontWeight: 700, fontSize: "0.88rem", color: isSelected ? "var(--blue-bright)" : "var(--text)" }}>{sm.name} {isCurrent && <span style={{ fontSize: "0.65rem", color: "var(--green)", marginLeft: 4 }}>✓ current</span>}</div>
+                        <div style={{ fontWeight: 700, fontSize: "0.88rem", color: isSelected ? "var(--blue-bright)" : "var(--text)" }}>{sm.name} {isCurrent && <span style={{ fontSize: "0.65rem", color: "var(--green)", marginLeft: 4 }}> current</span>}</div>
                         <div style={{ fontSize: "0.72rem", color: "var(--muted)" }}>{sm.city}, {sm.state}{sm.club ? ` · ${sm.club}` : ""}</div>
                       </div>
                       <div style={{ fontSize: "0.72rem", color: "var(--muted)", fontWeight: 600 }}>{pigsCount} pig{pigsCount !== 1 ? "s" : ""}</div>
@@ -1232,10 +1243,10 @@ function PigDetail({ data, id, setView, onAssignCustomer, onUnassignCustomer }) 
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <span className={`badge ${pig.sold ? "badge-sold" : "badge-available"}`} style={{ fontSize: "0.85rem", padding: "6px 14px" }}>
-            {pig.sold ? `Sold – ${pig.showmanName}` : "● Available"}
+            {pig.sold ? `Sold – ${pig.showmanName}` : " Available"}
           </span>
           <button className="btn btn-primary" onClick={() => setShowAssignModal(true)} style={{ fontSize: "0.8rem", padding: "7px 14px" }}>
-            🤠 {assignedCustomer ? "Reassign" : "Assign Customer"}
+            {assignedCustomer ? "Reassign" : "Assign Customer"}
           </button>
         </div>
       </div>
@@ -1243,7 +1254,7 @@ function PigDetail({ data, id, setView, onAssignCustomer, onUnassignCustomer }) 
       {/* Customer panel */}
       {assignedCustomer ? (
         <div className="section-card" style={{ borderColor: "rgba(16,185,129,0.3)", background: "rgba(16,185,129,0.04)" }}>
-          <h4 style={{ color: "var(--green)" }}>🤠 Customer</h4>
+          <h4 style={{ color: "var(--green)" }}>Customer</h4>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
             <div className="info-grid" style={{ flex: 1 }}>
               <div className="info-item"><label>Name</label><span>{assignedCustomer.name}</span></div>
@@ -1262,13 +1273,13 @@ function PigDetail({ data, id, setView, onAssignCustomer, onUnassignCustomer }) 
               <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--amber)", marginBottom: 3 }}>No Customer Assigned</div>
               <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>This pig is available for placement.</div>
             </div>
-            <button className="btn btn-primary" onClick={() => setShowAssignModal(true)} style={{ fontSize: "0.8rem" }}>🤠 Assign Customer</button>
+            <button className="btn btn-primary" onClick={() => setShowAssignModal(true)} style={{ fontSize: "0.8rem" }}>Assign Customer</button>
           </div>
         </div>
       )}
 
       <div className="section-card">
-        <h4>🧬 Lineage</h4>
+        <h4>Lineage</h4>
         <div className="lineage" style={{ flexWrap: "wrap", gap: 8 }}>
           <div className="lineage-box"><div className="role">Dam (Sow)</div><div className="name">{sow?.name}</div><div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{sow?.breed}</div></div>
           <div className="lineage-arrow">+</div>
@@ -1281,21 +1292,21 @@ function PigDetail({ data, id, setView, onAssignCustomer, onUnassignCustomer }) 
         </div>
       </div>
       <div className="section-card">
-        <h4>⚖️ Weight Log</h4>
+        <h4>Weight Log</h4>
         <table>
           <thead><tr><th>Date</th><th>Weight (lbs)</th><th>Notes</th></tr></thead>
           <tbody>{(pig.weightLog || []).map((w, i) => <tr key={i}><td>{fmt(w.date)}</td><td><strong>{w.weight}</strong></td><td>{w.notes}</td></tr>)}</tbody>
         </table>
       </div>
       <div className="section-card">
-        <h4>💉 Vaccination Record</h4>
+        <h4>Vaccination Record</h4>
         <table>
           <thead><tr><th>Vaccine</th><th>Date</th><th>Given By</th></tr></thead>
           <tbody>{(pig.vaccinations || []).map((v, i) => <tr key={i}><td>{v.name}</td><td>{fmt(v.date)}</td><td>{v.givenBy}</td></tr>)}</tbody>
         </table>
       </div>
       <div className="section-card">
-        <h4>🌾 Feed Notes & Plans</h4>
+        <h4>Feed Notes & Plans</h4>
         {(pig.feedNotes || []).length === 0 ? <div className="empty">No feed notes yet.</div> : (
           <table>
             <thead><tr><th>Date</th><th>Note</th></tr></thead>
@@ -1304,7 +1315,7 @@ function PigDetail({ data, id, setView, onAssignCustomer, onUnassignCustomer }) 
         )}
       </div>
       <div className="section-card">
-        <h4>🏆 Show Results</h4>
+        <h4>Show Results</h4>
         {(pig.showResults || []).length === 0 ? <div className="empty">No show results recorded yet.</div> : (
           <table>
             <thead><tr><th>Show</th><th>Date</th><th>Class</th><th>Placing</th></tr></thead>
@@ -1326,7 +1337,7 @@ function PigDetail({ data, id, setView, onAssignCustomer, onUnassignCustomer }) 
   );
 }
 
-// ─── BREEDING CALENDAR ────────────────────────────────────────────────────────
+//  BREEDING CALENDAR 
 function BreedingCalendar({ data, setView, onLogBreed }) {
   const rows = data.sows.map(sow => {
     const next = sowNextCycle(sow, data.litters);
@@ -1352,7 +1363,7 @@ function BreedingCalendar({ data, setView, onLogBreed }) {
               </div>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 5 }}>
                 {activeScheduled ? <StatusPill status={calc.status} /> : <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--muted)", background: "var(--surface)", padding: "3px 10px", borderRadius: 20, border: "1px solid var(--border)" }}>Needs Breeding</span>}
-                {mi.hasAlert && <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 20, fontSize: "0.65rem", fontWeight: 700, background: "rgba(239,68,68,0.12)", color: "var(--red)", border: "1px solid rgba(239,68,68,0.25)" }}>⚠ {mi.consecutiveMisses} missed</span>}
+                {mi.hasAlert && <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 20, fontSize: "0.65rem", fontWeight: 700, background: "rgba(239,68,68,0.12)", color: "var(--red)", border: "1px solid rgba(239,68,68,0.25)" }}> {mi.consecutiveMisses} missed</span>}
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
@@ -1360,7 +1371,7 @@ function BreedingCalendar({ data, setView, onLogBreed }) {
                 { label: "Last Wean", val: next.lastWeanDate ? fmt(next.lastWeanDate) : "—" },
                 { label: activeScheduled ? "Scheduled Breed" : "Proj. Breed", val: activeScheduled ? fmt(activeScheduled.breedDate) : next.projNextBreed ? fmt(next.projNextBreed) : "—", highlight: !!activeScheduled },
                 { label: activeScheduled ? "Due Date" : "Proj. Due Date", val: activeScheduled ? fmt(calc.dueDate) : next.projDueDate ? fmt(next.projDueDate) : "—", highlight: !!activeScheduled },
-                mi.nextHeat ? { label: "🔥 Next Heat", val: fmt(mi.nextHeat), heat: true } : { label: "Litters", val: data.litters.filter(l => l.sowId === sow.id).length.toString() },
+                mi.nextHeat ? { label: "Next Heat", val: fmt(mi.nextHeat), heat: true } : { label: "Litters", val: data.litters.filter(l => l.sowId === sow.id).length.toString() },
               ].map(item => (
                 <div key={item.label} style={{ background: item.heat ? "rgba(239,68,68,0.08)" : item.highlight ? "var(--blue-dim)" : "var(--surface)", borderRadius: 8, padding: "9px 12px", border: `1px solid ${item.heat ? "rgba(239,68,68,0.25)" : item.highlight ? "rgba(59,130,246,0.25)" : "var(--border)"}` }}>
                   <div style={{ fontSize: "0.6rem", color: item.heat ? "#f87171" : item.highlight ? "var(--blue-bright)" : "var(--muted)", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 3 }}>{item.label}</div>
@@ -1389,7 +1400,7 @@ function BreedingCalendar({ data, setView, onLogBreed }) {
   );
 }
 
-// ─── CUSTOMERS VIEW ───────────────────────────────────────────────────────────
+//  CUSTOMERS VIEW 
 function ShowmenView({ data, setView, onAddShowman, onEditShowman, onDeleteShowman }) {
   const [search, setSearch] = useState("");
   const filtered = data.showmen.filter(sm =>
@@ -1474,8 +1485,8 @@ function ShowmenView({ data, setView, onAddShowman, onEditShowman, onDeleteShowm
                   </div>
                 )}
                 <div style={{ marginTop: 12, display: "flex", gap: 14, flexWrap: "wrap" }}>
-                  {sm.email && <a href={`mailto:${sm.email}`} onClick={e => e.stopPropagation()} style={{ fontSize: "0.72rem", color: "var(--blue-bright)", textDecoration: "none", fontWeight: 600 }}>✉ {sm.email}</a>}
-                  {sm.phone && <span style={{ fontSize: "0.72rem", color: "var(--muted)" }}>📞 {sm.phone}</span>}
+                  {sm.email && <a href={`mailto:${sm.email}`} onClick={e => e.stopPropagation()} style={{ fontSize: "0.72rem", color: "var(--blue-bright)", textDecoration: "none", fontWeight: 600 }}> {sm.email}</a>}
+                  {sm.phone && <span style={{ fontSize: "0.72rem", color: "var(--muted)" }}> {sm.phone}</span>}
                 </div>
               </div>
             );
@@ -1485,7 +1496,7 @@ function ShowmenView({ data, setView, onAddShowman, onEditShowman, onDeleteShowm
 
       {/* Available Pigs */}
       <div style={{ marginTop: 40 }}>
-        <h3 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.2rem", marginBottom: 16, letterSpacing: "-0.03em" }}>🐖 Available Pigs for Placement</h3>
+        <h3 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.2rem", marginBottom: 16, letterSpacing: "-0.03em" }}>Available Pigs for Placement</h3>
         <div style={{ background: "var(--card-bg)", borderRadius: 14, border: "1px solid var(--border)", overflow: "hidden" }}>
           {data.pigs.filter(p => !p.sold).length === 0 ? (
             <div className="empty">All pigs have been placed!</div>
@@ -1518,7 +1529,7 @@ function ShowmenView({ data, setView, onAddShowman, onEditShowman, onDeleteShowm
   );
 }
 
-// ─── SERVICE SIRES VIEW ───────────────────────────────────────────────────────
+//  SERVICE SIRES VIEW 
 function BoarsView({ data, onAddBoar, onEditBoar, onDeleteBoar }) {
   const onFarm = data.boars.filter(b => b.location === "on-farm" || b.owner === "On-farm");
   const offFarm = data.boars.filter(b => b.location === "off-farm" || (b.owner !== "On-farm" && b.location !== "on-farm"));
@@ -1588,14 +1599,14 @@ function BoarsView({ data, onAddBoar, onEditBoar, onDeleteBoar }) {
 
       {onFarm.length > 0 && (
         <div style={{ marginBottom: 32 }}>
-          <SectionHeader label="🏠 On-Farm Sires" count={onFarm.length} color="var(--green)" />
+          <SectionHeader label=" On-Farm Sires" count={onFarm.length} color="var(--green)" />
           <div className="card-grid">{onFarm.map(b => <BoarCard key={b.id} boar={b} />)}</div>
         </div>
       )}
 
       {offFarm.length > 0 && (
         <div style={{ marginBottom: 32 }}>
-          <SectionHeader label="🔗 Off-Farm / External Sires" count={offFarm.length} color="var(--amber)" />
+          <SectionHeader label=" Off-Farm / External Sires" count={offFarm.length} color="var(--amber)" />
           <div className="card-grid">{offFarm.map(b => <BoarCard key={b.id} boar={b} />)}</div>
         </div>
       )}
@@ -1605,10 +1616,62 @@ function BoarsView({ data, onAddBoar, onEditBoar, onDeleteBoar }) {
   );
 }
 
-// ─── FINANCIAL REPORTS (NEW) ──────────────────────────────────────────────────
+//  FINANCIAL REPORTS (NEW) 
 function FinancialReports({ data }) {
   const [tab, setTab] = useState("overview");
-  const allKPIs = data.sows.map(s => sowCashKPIs(s, data));
+  const [rangePreset, setRangePreset] = useState("all");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
+  const [annualYear, setAnnualYear] = useState(new Date().getFullYear());
+
+  // Build date range from preset
+  const getDateRange = () => {
+    const now = new Date();
+    if (rangePreset === "week") { const s = new Date(now); s.setDate(s.getDate() - 7); return { start: s, end: now }; }
+    if (rangePreset === "month") { const s = new Date(now); s.setMonth(s.getMonth() - 1); return { start: s, end: now }; }
+    if (rangePreset === "3months") { const s = new Date(now); s.setMonth(s.getMonth() - 3); return { start: s, end: now }; }
+    if (rangePreset === "6months") { const s = new Date(now); s.setMonth(s.getMonth() - 6); return { start: s, end: now }; }
+    if (rangePreset === "year") { const s = new Date(now); s.setFullYear(s.getFullYear() - 1); return { start: s, end: now }; }
+    if (rangePreset === "custom" && customStart && customEnd) return { start: new Date(customStart), end: new Date(customEnd) };
+    return null; // all time
+  };
+
+  const dateRange = getDateRange();
+
+  // Filter expenses by date range
+  const filterCosts = (costs) => {
+    if (!dateRange) return costs;
+    return costs.filter(c => {
+      const d = new Date(c.date);
+      return d >= dateRange.start && d <= dateRange.end;
+    });
+  };
+
+  // Filter litters by farrow date
+  const filteredLitters = dateRange
+    ? data.litters.filter(l => { const d = new Date(l.farrowDate); return d >= dateRange.start && d <= dateRange.end; })
+    : data.litters;
+
+  // Build filtered data for KPIs
+  const filteredData = { ...data, litters: filteredLitters };
+  const allKPIs = data.sows.map(s => {
+    const litters = filteredLitters.filter(l => l.sowId === s.id);
+    const litterIds = litters.map(l => l.id);
+    const pigs = data.pigs.filter(p => litterIds.includes(p.litterId));
+    const soldPigs = pigs.filter(p => p.sold);
+    const availPigs = pigs.filter(p => !p.sold);
+    const totalRevenue = soldPigs.reduce((a, p) => a + p.purchasePrice, 0);
+    const pipeline = availPigs.reduce((a, p) => a + p.purchasePrice, 0);
+    const totalWeaned = litters.reduce((a, l) => a + l.numberWeaned, 0);
+    const costs = filterCosts(s.costs || []);
+    const totalCosts = costs.reduce((a, c) => a + c.amount, 0);
+    const costByCategory = Object.fromEntries(Object.keys(COST_CATEGORIES).map(cat => [cat, costs.filter(c => c.category === cat).reduce((a, c) => a + c.amount, 0)]));
+    const netProfit = totalRevenue - totalCosts;
+    const margin = totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0;
+    const costPerWeaned = totalWeaned > 0 ? (totalCosts / totalWeaned).toFixed(2) : "—";
+    return { totalRevenue, pipeline, soldCount: soldPigs.length, totalPigs: pigs.length, litters, totalCosts, costByCategory, netProfit, margin, costPerWeaned, costs };
+  });
+
   const totalRevenue = allKPIs.reduce((a, k) => a + k.totalRevenue, 0);
   const totalCosts = allKPIs.reduce((a, k) => a + k.totalCosts, 0);
   const totalPipeline = allKPIs.reduce((a, k) => a + k.pipeline, 0);
@@ -1617,12 +1680,9 @@ function FinancialReports({ data }) {
   const totalPigs = data.pigs.length;
   const soldPigs = data.pigs.filter(p => p.sold).length;
   const avgPigPrice = totalPigs > 0 ? Math.round(data.pigs.reduce((a, p) => a + p.purchasePrice, 0) / totalPigs) : 0;
-
-  // Category totals
   const catTotals = Object.fromEntries(Object.keys(COST_CATEGORIES).map(k => [k, allKPIs.reduce((a, kpi) => a + (kpi.costByCategory[k] || 0), 0)]));
 
-  // Per-litter analysis
-  const litterAnalysis = data.litters.map(l => {
+  const litterAnalysis = filteredLitters.map(l => {
     const sow = data.sows.find(s => s.id === l.sowId);
     const boar = data.boars.find(b => b.id === l.boarId);
     const pigs = data.pigs.filter(p => p.litterId === l.id);
@@ -1632,38 +1692,98 @@ function FinancialReports({ data }) {
     return { litter: l, sow, boar, pigs, sold, revenue, pipeline };
   });
 
+  // Annual report data
+  const annualStart = new Date(annualYear, 0, 1);
+  const annualEnd = new Date(annualYear, 11, 31, 23, 59, 59);
+  const annualLitters = data.litters.filter(l => { const d = new Date(l.farrowDate); return d >= annualStart && d <= annualEnd; });
+  const annualKPIs = data.sows.map(s => {
+    const litters = annualLitters.filter(l => l.sowId === s.id);
+    const litterIds = litters.map(l => l.id);
+    const pigs = data.pigs.filter(p => litterIds.includes(p.litterId));
+    const soldPigs = pigs.filter(p => p.sold);
+    const totalRevenue = soldPigs.reduce((a, p) => a + p.purchasePrice, 0);
+    const costs = (s.costs || []).filter(c => { const d = new Date(c.date); return d >= annualStart && d <= annualEnd; });
+    const totalCosts = costs.reduce((a, c) => a + c.amount, 0);
+    const costByCategory = Object.fromEntries(Object.keys(COST_CATEGORIES).map(cat => [cat, costs.filter(c => c.category === cat).reduce((a, c) => a + c.amount, 0)]));
+    const netProfit = totalRevenue - totalCosts;
+    const margin = totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0;
+    return { sow: s, totalRevenue, totalCosts, costByCategory, netProfit, margin, litters, soldCount: soldPigs.length, totalPigs: pigs.length, costs };
+  });
+  const annualRevenue = annualKPIs.reduce((a, k) => a + k.totalRevenue, 0);
+  const annualCosts = annualKPIs.reduce((a, k) => a + k.totalCosts, 0);
+  const annualProfit = annualRevenue - annualCosts;
+  const annualMargin = annualRevenue > 0 ? Math.round((annualProfit / annualRevenue) * 100) : 0;
+  const annualCatTotals = Object.fromEntries(Object.keys(COST_CATEGORIES).map(k => [k, annualKPIs.reduce((a, kpi) => a + (kpi.costByCategory[k] || 0), 0)]));
+
+  // Available years (from earliest expense or litter)
+  const allDates = [
+    ...data.litters.map(l => l.farrowDate),
+    ...data.sows.flatMap(s => (s.costs || []).map(c => c.date)),
+  ].filter(Boolean).map(d => new Date(d).getFullYear());
+  const years = allDates.length > 0
+    ? Array.from({ length: new Date().getFullYear() - Math.min(...allDates) + 1 }, (_, i) => Math.min(...allDates) + i).reverse()
+    : [new Date().getFullYear()];
+
+  const filterBtnStyle = (active) => ({
+    padding: "6px 14px", borderRadius: 8, border: `1px solid ${active ? "var(--blue-bright)" : "var(--border)"}`,
+    background: active ? "var(--blue-dim)" : "transparent", color: active ? "var(--blue-bright)" : "var(--muted)",
+    cursor: "pointer", fontSize: "0.78rem", fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600,
+  });
+
+  const KPIGrid = ({ revenue, costs, profit, margin, pipeline, pigsLabel }) => (
+    <div className="report-kpi-grid">
+      {[
+        { val: `$${revenue.toLocaleString()}`, label: "Total Revenue", color: "var(--green)" },
+        { val: `$${Math.round(costs).toLocaleString()}`, label: "Total Costs", color: "var(--red)" },
+        { val: `${profit >= 0 ? "+" : ""}$${Math.round(profit).toLocaleString()}`, label: "Net Profit", color: profit >= 0 ? "var(--green)" : "var(--red)" },
+        { val: `${margin}%`, label: "Profit Margin", color: margin >= 40 ? "var(--green)" : "var(--amber)" },
+        ...(pipeline !== undefined ? [{ val: `$${pipeline.toLocaleString()}`, label: "Pipeline (Unsold)", color: "var(--blue-bright)" }] : []),
+        ...(pigsLabel ? [{ val: pigsLabel, label: "Pigs Sold", color: "var(--blue-bright)" }] : []),
+      ].map(k => (
+        <div key={k.label} className="report-kpi" style={{ borderLeft: `3px solid ${k.color}` }}>
+          <div className="val" style={{ color: k.color }}>{k.val}</div>
+          <div className="lbl">{k.label}</div>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div>
       <div className="page-header"><h2>Financial Reports</h2><p>Revenue, costs, margins & performance analysis</p></div>
       <div className="tab-bar">
-        {[["overview","📊 Overview"],["perlitter","🐣 Per Litter"],["costs","💸 Cost Breakdown"],["sow","🐷 Sow Comparison"]].map(([id, lbl]) => (
+        {[["overview","Overview"],["perlitter","Per Litter"],["costs","Cost Breakdown"],["sow","Sow Comparison"],["annual","Annual Report"]].map(([id, lbl]) => (
           <button key={id} className={`tab-btn ${tab === id ? "active" : ""}`} onClick={() => setTab(id)}>{lbl}</button>
         ))}
       </div>
 
+      {/* Date range filter — shown on all tabs except annual */}
+      {tab !== "annual" && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+          <span style={{ fontSize: "0.72rem", color: "var(--muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", marginRight: 4 }}>Period</span>
+          {[["all","All Time"],["week","Last 7 Days"],["month","Last Month"],["3months","Last 3 Months"],["6months","Last 6 Months"],["year","Last Year"],["custom","Custom"]].map(([v, l]) => (
+            <button key={v} style={filterBtnStyle(rangePreset === v)} onClick={() => setRangePreset(v)}>{l}</button>
+          ))}
+          {rangePreset === "custom" && (
+            <>
+              <input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)} style={{ ...inputStyle, width: 140, fontSize: "0.78rem", padding: "6px 10px" }} />
+              <span style={{ color: "var(--muted)", fontSize: "0.8rem" }}>to</span>
+              <input type="date" value={customEnd} onChange={e => setCustomEnd(e.target.value)} style={{ ...inputStyle, width: 140, fontSize: "0.78rem", padding: "6px 10px" }} />
+            </>
+          )}
+          {dateRange && (
+            <span style={{ fontSize: "0.72rem", color: "var(--muted)", marginLeft: 8 }}>
+              {dateRange.start.toLocaleDateString()} – {dateRange.end.toLocaleDateString()}
+            </span>
+          )}
+        </div>
+      )}
+
       {tab === "overview" && (
         <div>
-          <div className="report-kpi-grid">
-            {[
-              { val: `$${totalRevenue.toLocaleString()}`, label: "Total Revenue", color: "var(--green)" },
-              { val: `$${Math.round(totalCosts).toLocaleString()}`, label: "Total Costs", color: "var(--red)" },
-              { val: `${netProfit >= 0 ? "+" : ""}$${Math.round(netProfit).toLocaleString()}`, label: "Net Profit", color: netProfit >= 0 ? "var(--green)" : "var(--red)" },
-              { val: `${margin}%`, label: "Profit Margin", color: margin >= 40 ? "var(--green)" : "var(--amber)" },
-              { val: `$${totalPipeline.toLocaleString()}`, label: "Pipeline (Unsold)", color: "var(--blue-bright)" },
-              { val: `${soldPigs}/${totalPigs}`, label: "Pigs Sold", color: "var(--blue-bright)" },
-              { val: `$${avgPigPrice.toLocaleString()}`, label: "Avg Pig Price", color: "var(--muted)" },
-              { val: data.showmen.length, label: "Active Customers", color: "var(--muted)" },
-            ].map(k => (
-              <div key={k.label} className="report-kpi" style={{ borderLeft: `3px solid ${k.color}` }}>
-                <div className="val" style={{ color: k.color }}>{k.val}</div>
-                <div className="lbl">{k.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Revenue vs Cost bar chart */}
+          <KPIGrid revenue={totalRevenue} costs={totalCosts} profit={netProfit} margin={margin} pipeline={totalPipeline} pigsLabel={`${soldPigs}/${totalPigs}`} />
           <div className="section-card">
-            <h4>📈 Revenue vs Costs by Sow</h4>
+            <h4>Revenue vs Costs by Sow</h4>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {data.sows.map((sow, i) => {
                 const kpi = allKPIs[i];
@@ -1675,16 +1795,13 @@ function FinancialReports({ data }) {
                       <span style={{ fontSize: "0.8rem", color: kpi.netProfit >= 0 ? "var(--green)" : "var(--red)", fontWeight: 700 }}>{kpi.netProfit >= 0 ? "+" : ""}${Math.round(kpi.netProfit).toLocaleString()}</span>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <span style={{ fontSize: "0.62rem", color: "var(--muted)", width: 55, textAlign: "right" }}>Revenue</span>
-                        <div style={{ flex: 1, height: 12, background: "var(--surface)", borderRadius: 6, overflow: "hidden" }}><div style={{ height: "100%", width: `${(kpi.totalRevenue / maxVal) * 100}%`, background: "var(--green)", borderRadius: 6 }} /></div>
-                        <span style={{ fontSize: "0.72rem", fontWeight: 600, color: "var(--green)", width: 60, textAlign: "right" }}>${kpi.totalRevenue.toLocaleString()}</span>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <span style={{ fontSize: "0.62rem", color: "var(--muted)", width: 55, textAlign: "right" }}>Costs</span>
-                        <div style={{ flex: 1, height: 12, background: "var(--surface)", borderRadius: 6, overflow: "hidden" }}><div style={{ height: "100%", width: `${(kpi.totalCosts / maxVal) * 100}%`, background: "var(--red)", borderRadius: 6 }} /></div>
-                        <span style={{ fontSize: "0.72rem", fontWeight: 600, color: "var(--red)", width: 60, textAlign: "right" }}>${Math.round(kpi.totalCosts).toLocaleString()}</span>
-                      </div>
+                      {[["Revenue", kpi.totalRevenue, "var(--green)"],["Costs", kpi.totalCosts, "var(--red)"]].map(([lbl, val, color]) => (
+                        <div key={lbl} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <span style={{ fontSize: "0.62rem", color: "var(--muted)", width: 55, textAlign: "right" }}>{lbl}</span>
+                          <div style={{ flex: 1, height: 12, background: "var(--surface)", borderRadius: 6, overflow: "hidden" }}><div style={{ height: "100%", width: `${(val / maxVal) * 100}%`, background: color, borderRadius: 6 }} /></div>
+                          <span style={{ fontSize: "0.72rem", fontWeight: 600, color, width: 60, textAlign: "right" }}>${Math.round(val).toLocaleString()}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 );
@@ -1700,7 +1817,9 @@ function FinancialReports({ data }) {
             <table>
               <thead><tr><th>Sow × Sire</th><th>Farrow Date</th><th>Born / Weaned</th><th>Registered</th><th>Sold</th><th>Revenue</th><th>Pipeline</th><th>Avg Price</th></tr></thead>
               <tbody>
-                {litterAnalysis.map(({ litter, sow, boar, pigs, sold, revenue, pipeline }) => {
+                {litterAnalysis.length === 0 ? (
+                  <tr><td colSpan={8} style={{ textAlign: "center", color: "var(--muted)", padding: 24 }}>No litters in this period</td></tr>
+                ) : litterAnalysis.map(({ litter, sow, boar, pigs, sold, revenue, pipeline }) => {
                   const avg = pigs.length > 0 ? Math.round(pigs.reduce((a, p) => a + p.purchasePrice, 0) / pigs.length) : 0;
                   return (
                     <tr key={litter.id}>
@@ -1718,18 +1837,20 @@ function FinancialReports({ data }) {
               </tbody>
             </table>
           </div>
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 24, padding: "14px 20px", background: "var(--surface)", borderRadius: 10 }}>
-            <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>Totals</span>
-            <span style={{ fontWeight: 700, color: "var(--green)" }}>${litterAnalysis.reduce((a, l) => a + l.revenue, 0).toLocaleString()} revenue</span>
-            <span style={{ fontWeight: 700, color: "var(--blue-bright)" }}>${litterAnalysis.reduce((a, l) => a + l.pipeline, 0).toLocaleString()} pipeline</span>
-          </div>
+          {litterAnalysis.length > 0 && (
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 24, padding: "14px 20px", background: "var(--surface)", borderRadius: 10 }}>
+              <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>Totals</span>
+              <span style={{ fontWeight: 700, color: "var(--green)" }}>${litterAnalysis.reduce((a, l) => a + l.revenue, 0).toLocaleString()} revenue</span>
+              <span style={{ fontWeight: 700, color: "var(--blue-bright)" }}>${litterAnalysis.reduce((a, l) => a + l.pipeline, 0).toLocaleString()} pipeline</span>
+            </div>
+          )}
         </div>
       )}
 
       {tab === "costs" && (
         <div>
           <div className="section-card">
-            <h4>💸 Cost Categories — Farm Total</h4>
+            <h4>Cost Categories — Farm Total</h4>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {Object.entries(COST_CATEGORIES).map(([key, cat]) => {
                 const amt = catTotals[key] || 0;
@@ -1737,7 +1858,7 @@ function FinancialReports({ data }) {
                 return (
                   <div key={key}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                      <span style={{ fontSize: "0.85rem", fontWeight: 600 }}>{cat.icon} {cat.label}</span>
+                      <span style={{ fontSize: "0.85rem", fontWeight: 600 }}>{cat.label}</span>
                       <div style={{ display: "flex", gap: 16 }}>
                         <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>{pct}%</span>
                         <span style={{ fontSize: "0.9rem", fontWeight: 700, color: cat.color }}>${amt.toFixed(2)}</span>
@@ -1753,24 +1874,24 @@ function FinancialReports({ data }) {
               <span style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.4rem", fontWeight: 800, color: "var(--blue-bright)" }}>${Math.round(totalCosts).toLocaleString()}</span>
             </div>
           </div>
-
-          {/* All expenses table */}
           <div className="section-card">
-            <h4>📋 All Expenses</h4>
+            <h4>All Expenses</h4>
             <table>
               <thead><tr><th>Date</th><th>Sow</th><th>Category</th><th>Description</th><th style={{ textAlign: "right" }}>Amount</th></tr></thead>
               <tbody>
-                {data.sows.flatMap(sow =>
-                  (sow.costs || []).map(c => ({ ...c, sowName: sow.name, sowTag: sow.tag }))
-                ).sort((a, b) => new Date(b.date) - new Date(a.date)).map(c => (
-                  <tr key={c.id}>
-                    <td style={{ whiteSpace: "nowrap" }}>{fmt(c.date)}</td>
-                    <td style={{ fontSize: "0.82rem" }}>{c.sowName} <span style={{ color: "var(--muted)" }}>({c.sowTag})</span></td>
-                    <td><span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "2px 8px", borderRadius: 12, fontSize: "0.72rem", fontWeight: 600, background: `${COST_CATEGORIES[c.category]?.color}22`, color: COST_CATEGORIES[c.category]?.color }}>{COST_CATEGORIES[c.category]?.icon} {COST_CATEGORIES[c.category]?.label}</span></td>
-                    <td>{c.description}</td>
-                    <td style={{ textAlign: "right", fontWeight: 600, color: "var(--red)" }}>-${c.amount.toFixed(2)}</td>
-                  </tr>
-                ))}
+                {(() => {
+                  const rows = data.sows.flatMap(sow => filterCosts(sow.costs || []).map(c => ({ ...c, sowName: sow.name, sowTag: sow.tag }))).sort((a, b) => new Date(b.date) - new Date(a.date));
+                  if (rows.length === 0) return <tr><td colSpan={5} style={{ textAlign: "center", color: "var(--muted)", padding: 24 }}>No expenses in this period</td></tr>;
+                  return rows.map(c => (
+                    <tr key={c.id}>
+                      <td style={{ whiteSpace: "nowrap" }}>{fmt(c.date)}</td>
+                      <td style={{ fontSize: "0.82rem" }}>{c.sowName} <span style={{ color: "var(--muted)" }}>({c.sowTag})</span></td>
+                      <td><span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "2px 8px", borderRadius: 12, fontSize: "0.72rem", fontWeight: 600, background: `${COST_CATEGORIES[c.category]?.color}22`, color: COST_CATEGORIES[c.category]?.color }}>{COST_CATEGORIES[c.category]?.label}</span></td>
+                      <td>{c.description}</td>
+                      <td style={{ textAlign: "right", fontWeight: 600, color: "var(--red)" }}>-${c.amount.toFixed(2)}</td>
+                    </tr>
+                  ));
+                })()}
               </tbody>
             </table>
           </div>
@@ -1822,11 +1943,127 @@ function FinancialReports({ data }) {
           </div>
         </div>
       )}
+
+      {tab === "annual" && (
+        <div>
+          {/* Year selector */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28 }}>
+            <span style={{ fontSize: "0.72rem", color: "var(--muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>Year</span>
+            <div style={{ display: "flex", gap: 6 }}>
+              {years.map(y => (
+                <button key={y} onClick={() => setAnnualYear(y)} style={filterBtnStyle(annualYear === y)}>{y}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Annual KPI summary */}
+          <div style={{ background: "linear-gradient(135deg, var(--card-bg) 0%, rgba(29,78,216,0.08) 100%)", borderRadius: 16, border: "1px solid var(--border)", padding: "28px 28px 24px", marginBottom: 24 }}>
+            <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--blue-bright)", marginBottom: 6 }}>Annual Summary</div>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontSize: "2rem", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: 20 }}>{annualYear} Financial Report</div>
+            <KPIGrid revenue={annualRevenue} costs={annualCosts} profit={annualProfit} margin={annualMargin} />
+          </div>
+
+          {/* Monthly breakdown */}
+          <div className="section-card" style={{ marginBottom: 20 }}>
+            <h4>Monthly Breakdown — {annualYear}</h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {Array.from({ length: 12 }, (_, month) => {
+                const mStart = new Date(annualYear, month, 1);
+                const mEnd = new Date(annualYear, month + 1, 0, 23, 59, 59);
+                const mCosts = data.sows.flatMap(s => (s.costs || []).filter(c => { const d = new Date(c.date); return d >= mStart && d <= mEnd; }));
+                const mLitters = data.litters.filter(l => { const d = new Date(l.farrowDate); return d >= mStart && d <= mEnd; });
+                const mLitterIds = mLitters.map(l => l.id);
+                const mPigs = data.pigs.filter(p => mLitterIds.includes(p.litterId) && p.sold);
+                const mRevenue = mPigs.reduce((a, p) => a + p.purchasePrice, 0);
+                const mTotalCosts = mCosts.reduce((a, c) => a + c.amount, 0);
+                const mProfit = mRevenue - mTotalCosts;
+                const monthName = new Date(annualYear, month).toLocaleString("default", { month: "short" });
+                const maxMonthVal = Math.max(...Array.from({ length: 12 }, (_, m) => {
+                  const s2 = new Date(annualYear, m, 1); const e2 = new Date(annualYear, m + 1, 0);
+                  const c2 = data.sows.flatMap(s => (s.costs || []).filter(c => { const d = new Date(c.date); return d >= s2 && d <= e2; })).reduce((a, c) => a + c.amount, 0);
+                  const l2 = data.litters.filter(l => { const d = new Date(l.farrowDate); return d >= s2 && d <= e2; }).map(l => l.id);
+                  const r2 = data.pigs.filter(p => l2.includes(p.litterId) && p.sold).reduce((a, p) => a + p.purchasePrice, 0);
+                  return Math.max(r2, c2);
+                }), 1);
+                const hasData = mRevenue > 0 || mTotalCosts > 0;
+                return (
+                  <div key={month} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--muted)", width: 32 }}>{monthName}</span>
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
+                      <div style={{ height: 8, background: "var(--surface)", borderRadius: 4, overflow: "hidden" }}><div style={{ height: "100%", width: `${(mRevenue / maxMonthVal) * 100}%`, background: "var(--green)", borderRadius: 4, transition: "width 0.3s" }} /></div>
+                      <div style={{ height: 8, background: "var(--surface)", borderRadius: 4, overflow: "hidden" }}><div style={{ height: "100%", width: `${(mTotalCosts / maxMonthVal) * 100}%`, background: "var(--red)", borderRadius: 4, transition: "width 0.3s" }} /></div>
+                    </div>
+                    {hasData ? (
+                      <div style={{ textAlign: "right", minWidth: 100 }}>
+                        <div style={{ fontSize: "0.72rem", color: "var(--green)", fontWeight: 700 }}>${mRevenue.toLocaleString()}</div>
+                        <div style={{ fontSize: "0.7rem", color: mProfit >= 0 ? "var(--green)" : "var(--red)" }}>{mProfit >= 0 ? "+" : ""}${Math.round(mProfit).toLocaleString()}</div>
+                      </div>
+                    ) : <span style={{ fontSize: "0.7rem", color: "var(--subtle)", minWidth: 100, textAlign: "right" }}>No data</span>}
+                  </div>
+                );
+              })}
+              <div style={{ display: "flex", gap: 16, marginTop: 8, paddingTop: 10, borderTop: "1px solid var(--border)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}><div style={{ width: 12, height: 8, background: "var(--green)", borderRadius: 2 }} /><span style={{ fontSize: "0.72rem", color: "var(--muted)" }}>Revenue</span></div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}><div style={{ width: 12, height: 8, background: "var(--red)", borderRadius: 2 }} /><span style={{ fontSize: "0.72rem", color: "var(--muted)" }}>Costs</span></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Annual cost breakdown */}
+          <div className="section-card" style={{ marginBottom: 20 }}>
+            <h4>Cost Breakdown — {annualYear}</h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {Object.entries(COST_CATEGORIES).map(([key, cat]) => {
+                const amt = annualCatTotals[key] || 0;
+                const pct = annualCosts > 0 ? Math.round((amt / annualCosts) * 100) : 0;
+                return (
+                  <div key={key}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                      <span style={{ fontSize: "0.85rem", fontWeight: 600 }}>{cat.label}</span>
+                      <div style={{ display: "flex", gap: 14 }}>
+                        <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>{pct}%</span>
+                        <span style={{ fontSize: "0.88rem", fontWeight: 700, color: cat.color }}>${amt.toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <div style={{ height: 8, background: "var(--surface)", borderRadius: 4, overflow: "hidden" }}><div style={{ height: "100%", width: `${pct}%`, background: cat.color, borderRadius: 4 }} /></div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Annual sow performance */}
+          <div className="section-card">
+            <h4>Sow Performance — {annualYear}</h4>
+            <div style={{ background: "var(--surface)", borderRadius: 10, overflow: "hidden" }}>
+              <table>
+                <thead><tr><th>Sow</th><th>Litters</th><th>Pigs Sold</th><th>Revenue</th><th>Costs</th><th>Net Profit</th><th>Margin</th></tr></thead>
+                <tbody>
+                  {annualKPIs.filter(k => k.litters.length > 0 || k.costs.length > 0).map(k => (
+                    <tr key={k.sow.id}>
+                      <td><strong>{k.sow.name}</strong> <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>({k.sow.tag})</span></td>
+                      <td>{k.litters.length}</td>
+                      <td>{k.soldCount}</td>
+                      <td style={{ fontWeight: 700, color: "var(--green)" }}>${k.totalRevenue.toLocaleString()}</td>
+                      <td style={{ color: "var(--red)" }}>${Math.round(k.totalCosts).toLocaleString()}</td>
+                      <td style={{ fontWeight: 700, color: k.netProfit >= 0 ? "var(--green)" : "var(--red)" }}>{k.netProfit >= 0 ? "+" : ""}${Math.round(k.netProfit).toLocaleString()}</td>
+                      <td><span style={{ fontWeight: 700, color: k.margin >= 40 ? "var(--green)" : k.margin >= 0 ? "var(--amber)" : "var(--red)" }}>{k.margin}%</span></td>
+                    </tr>
+                  ))}
+                  {annualKPIs.every(k => k.litters.length === 0 && k.costs.length === 0) && (
+                    <tr><td colSpan={7} style={{ textAlign: "center", color: "var(--muted)", padding: 24 }}>No data for {annualYear}</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── MODALS ───────────────────────────────────────────────────────────────────
+//  MODALS 
 function SowModal({ sow, onSave, onClose }) {
   const [name, setName] = useState(sow?.name || "");
   const [tag, setTag] = useState(sow?.tag || "");
@@ -1842,7 +2079,7 @@ function SowModal({ sow, onSave, onClose }) {
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal-box">
-        <div className="modal-header"><h3>{sow ? "✏️ Edit Sow" : "🐷 Add New Sow"}</h3><button className="modal-close" onClick={onClose}>×</button></div>
+        <div className="modal-header"><h3>{sow ? "Edit Sow" : "Add New Sow"}</h3><button className="modal-close" onClick={onClose}>×</button></div>
         <div className="modal-body">
           <div><label style={labelStyle}>Name *</label><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Duchess" style={inputStyle} /></div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
@@ -1851,7 +2088,7 @@ function SowModal({ sow, onSave, onClose }) {
           </div>
           <div><label style={labelStyle}>Breed *</label><input value={breed} onChange={e => setBreed(e.target.value)} placeholder="e.g. Hampshire x Duroc" style={inputStyle} /></div>
           <div style={{ background: "var(--surface)", borderRadius: 8, padding: "12px 14px", border: "1px solid var(--border)" }}>
-            <div style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--blue-bright)", marginBottom: 10 }}>🧬 Lineage</div>
+            <div style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--blue-bright)", marginBottom: 10 }}>Lineage</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               <div><label style={labelStyle}>Sire</label><input value={sire} onChange={e => setSire(e.target.value)} placeholder="e.g. Ironside" style={inputStyle} /></div>
               <div><label style={labelStyle}>Dam's Sire</label><input value={damSire} onChange={e => setDamSire(e.target.value)} placeholder="e.g. Full Package" style={inputStyle} /></div>
@@ -1900,7 +2137,7 @@ function BoarModal({ boar, onSave, onClose }) {
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal-box">
-        <div className="modal-header"><h3>{boar ? "✏️ Edit Service Sire" : "🐗 Add Service Sire"}</h3><button className="modal-close" onClick={onClose}>×</button></div>
+        <div className="modal-header"><h3>{boar ? " Edit Service Sire" : " Add Service Sire"}</h3><button className="modal-close" onClick={onClose}>×</button></div>
         <div className="modal-body">
           <div><label style={labelStyle}>Name *</label><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Thunder" style={inputStyle} /></div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
@@ -1912,7 +2149,7 @@ function BoarModal({ boar, onSave, onClose }) {
           <div>
             <label style={labelStyle}>Location</label>
             <div style={{ display: "flex", gap: 0, background: "var(--surface)", borderRadius: 8, padding: 3, border: "1px solid var(--border)" }}>
-              {[["on-farm","🏠 On-Farm"],["off-farm","🔗 Off-Farm / External"]].map(([v,l]) => (
+              {[["on-farm"," On-Farm"],["off-farm"," Off-Farm / External"]].map(([v,l]) => (
                 <button key={v} onClick={() => { setLocation(v); if (v === "on-farm") setOwner("On-farm"); }} style={{ flex: 1, padding: "7px 8px", borderRadius: 6, border: "none", cursor: "pointer", fontFamily: "'Space Grotesk', sans-serif", fontSize: "0.78rem", fontWeight: 700, background: location === v ? "var(--blue-dim)" : "transparent", color: location === v ? "var(--blue-bright)" : "var(--muted)", transition: "all 0.15s" }}>{l}</button>
               ))}
             </div>
@@ -1922,7 +2159,7 @@ function BoarModal({ boar, onSave, onClose }) {
           <div>
             <label style={labelStyle}>Breeding Method</label>
             <div style={{ display: "flex", gap: 0, background: "var(--surface)", borderRadius: 8, padding: 3, border: "1px solid var(--border)" }}>
-              {[["Natural","🐗 Natural Service"],["AI","🧪 Artificial Insemination"]].map(([v,l]) => (
+              {[["Natural"," Natural Service"],["AI"," Artificial Insemination"]].map(([v,l]) => (
                 <button key={v} onClick={() => setMethod(v)} style={{ flex: 1, padding: "7px 8px", borderRadius: 6, border: "none", cursor: "pointer", fontFamily: "'Space Grotesk', sans-serif", fontSize: "0.78rem", fontWeight: 700, background: method === v ? "var(--blue-dim)" : "transparent", color: method === v ? "var(--blue-bright)" : "var(--muted)", transition: "all 0.15s" }}>{l}</button>
               ))}
             </div>
@@ -1930,7 +2167,7 @@ function BoarModal({ boar, onSave, onClose }) {
           {/* AI semen cost section */}
           {method === "AI" && (
             <div style={{ background: "var(--blue-dim)", border: "1px solid rgba(59,130,246,0.25)", borderRadius: 10, padding: "14px 16px" }}>
-              <div style={{ fontSize: "0.72rem", color: "var(--blue-bright)", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 12 }}>🧪 Semen Cost Settings</div>
+              <div style={{ fontSize: "0.72rem", color: "var(--blue-bright)", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 12 }}> Semen Cost Settings</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                 <div>
                   <label style={labelStyle}>Cost Per Dose ($)</label>
@@ -1982,7 +2219,7 @@ function ShowmanModal({ showman, onSave, onClose }) {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal-box" style={{ maxWidth: 500 }}>
         <div className="modal-header">
-          <h3>{showman ? "✏️ Edit Customer" : "🤠 Add Customer"}</h3>
+          <h3>{showman ? "Edit Customer" : "Add Customer"}</h3>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <div className="modal-body">
@@ -1999,7 +2236,7 @@ function ShowmanModal({ showman, onSave, onClose }) {
           <div><label style={labelStyle}>4-H / FFA Club</label><input value={club} onChange={e => setClub(e.target.value)} placeholder="Taylor County 4-H" style={inputStyle} /></div>
           <div><label style={labelStyle}>Notes</label><textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes about this customer..." style={textareaStyle} /></div>
           <div style={{ padding: "10px 14px", background: "var(--surface)", borderRadius: 8, fontSize: "0.78rem", color: "var(--muted)" }}>
-            💡 To assign pigs to this customer, open the individual pig's page and use the <strong style={{ color: "var(--text)" }}>Assign Customer</strong> button.
+             To assign pigs to this customer, open the individual pig's page and use the <strong style={{ color: "var(--text)" }}>Assign Customer</strong> button.
           </div>
           <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
             <button className="btn btn-outline" onClick={onClose}>Cancel</button>
@@ -2033,7 +2270,7 @@ function AddPigModal({ litterId, litters, sows, onSave, onClose }) {
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal-box">
-        <div className="modal-header"><h3>🐖 Add Pig</h3><button className="modal-close" onClick={onClose}>×</button></div>
+        <div className="modal-header"><h3> Add Pig</h3><button className="modal-close" onClick={onClose}>×</button></div>
         <div className="modal-body">
           <div>
             <label style={labelStyle}>Litter *</label>
@@ -2068,7 +2305,7 @@ function AddPigModal({ litterId, litters, sows, onSave, onClose }) {
   );
 }
 
-// ─── RECORD FARROW MODAL ─────────────────────────────────────────────────────
+//  RECORD FARROW MODAL 
 function RecordFarrowModal({ sows, boars, defaultSowId, onSave, onClose }) {
   const today = new Date().toISOString().split("T")[0];
   const [sowId, setSowId] = useState(defaultSowId || sows[0]?.id || "");
@@ -2110,7 +2347,7 @@ function RecordFarrowModal({ sows, boars, defaultSowId, onSave, onClose }) {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal-box" style={{ maxWidth: 520 }}>
         <div className="modal-header">
-          <h3>🐖 Record Farrowing</h3>
+          <h3> Record Farrowing</h3>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <div className="modal-body">
@@ -2150,7 +2387,7 @@ function RecordFarrowModal({ sows, boars, defaultSowId, onSave, onClose }) {
           </div>
 
           <div style={{ background: "var(--surface)", borderRadius: 8, padding: "12px 14px", border: "1px solid var(--border)" }}>
-            <div style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--green)", marginBottom: 10 }}>📅 Wean Date</div>
+            <div style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--green)", marginBottom: 10 }}> Wean Date</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 14, alignItems: "end" }}>
               <div>
                 <label style={labelStyle}>Planned Wean Date</label>
@@ -2228,13 +2465,13 @@ function LogBreedModal({ sows, boars, defaultSowId, onSave, onClose }) {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal-box" style={{ maxWidth: 500 }}>
         <div className="modal-header">
-          <h3>{mode === 'open' ? '🔓 Log Open Cycle' : '🐗 Log Breeding'}</h3>
+          <h3>{mode === 'open' ? ' Log Open Cycle' : ' Log Breeding'}</h3>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <div className="modal-body">
           {/* Mode toggle */}
           <div style={{ display: "flex", gap: 0, background: "var(--surface)", borderRadius: 8, padding: 3, border: "1px solid var(--border)" }}>
-            {[["breed","🐗 Breed Attempt"],["open","🔓 Open / Missed Heat"]].map(([val,lbl]) => (
+            {[["breed"," Breed Attempt"],["open"," Open / Missed Heat"]].map(([val,lbl]) => (
               <button key={val} onClick={() => setMode(val)} style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: "none", cursor: "pointer", fontFamily: "'Space Grotesk', sans-serif", fontSize: "0.78rem", fontWeight: 700, transition: "all 0.15s", background: mode === val ? (val === 'open' ? "rgba(245,158,11,0.15)" : "var(--blue-dim)") : "transparent", color: mode === val ? (val === 'open' ? "var(--amber)" : "var(--blue-bright)") : "var(--muted)" }}>{lbl}</button>
             ))}
           </div>
@@ -2255,8 +2492,8 @@ function LogBreedModal({ sows, boars, defaultSowId, onSave, onClose }) {
             <div>
               <label style={labelStyle}>Service Sire</label>
               <select value={sireId} onChange={e => handleSireChange(e.target.value)} style={inputStyle}>
-                {onFarmBoars.length > 0 && <optgroup label="── On-Farm">{onFarmBoars.map(b => <option key={b.id} value={b.id}>{b.name} ({b.tag}) · {b.breed}</option>)}</optgroup>}
-                {offFarmBoars.length > 0 && <optgroup label="── Off-Farm / External">{offFarmBoars.map(b => <option key={b.id} value={b.id}>{b.name} ({b.tag}) · {b.breed} — {b.owner}</option>)}</optgroup>}
+                {onFarmBoars.length > 0 && <optgroup label=" On-Farm">{onFarmBoars.map(b => <option key={b.id} value={b.id}>{b.name} ({b.tag}) · {b.breed}</option>)}</optgroup>}
+                {offFarmBoars.length > 0 && <optgroup label=" Off-Farm / External">{offFarmBoars.map(b => <option key={b.id} value={b.id}>{b.name} ({b.tag}) · {b.breed} — {b.owner}</option>)}</optgroup>}
               </select>
             </div>
 
@@ -2264,8 +2501,8 @@ function LogBreedModal({ sows, boars, defaultSowId, onSave, onClose }) {
               <div>
                 <label style={labelStyle}>Method</label>
                 <select value={method} onChange={e => setMethod(e.target.value)} style={inputStyle}>
-                  <option value="Natural">🐗 Natural Service</option>
-                  <option value="AI">🧪 Artificial Insemination</option>
+                  <option value="Natural"> Natural Service</option>
+                  <option value="AI"> Artificial Insemination</option>
                 </select>
               </div>
               {method === "AI" && (
@@ -2280,7 +2517,7 @@ function LogBreedModal({ sows, boars, defaultSowId, onSave, onClose }) {
             {/* Auto-charge preview */}
             {method === "AI" && semenCost > 0 && (
               <div style={{ background: "var(--blue-dim)", border: "1px solid rgba(59,130,246,0.25)", borderRadius: 10, padding: "12px 16px" }}>
-                <div style={{ fontSize: "0.62rem", color: "var(--blue-bright)", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 6 }}>💰 Auto-Charge on Save</div>
+                <div style={{ fontSize: "0.62rem", color: "var(--blue-bright)", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 6 }}> Auto-Charge on Save</div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>{doses} dose{doses > 1 ? "s" : ""} × ${selectedBoar?.semenDosePrice || 0} ({selectedBoar?.name})</span>
                   <span style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.2rem", fontWeight: 800, color: "var(--green)" }}>${semenCost.toFixed(2)}</span>
@@ -2291,7 +2528,7 @@ function LogBreedModal({ sows, boars, defaultSowId, onSave, onClose }) {
 
             {/* Pending notice */}
             <div style={{ background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.25)", borderRadius: 10, padding: "10px 14px", display: "flex", gap: 10, alignItems: "flex-start" }}>
-              <span style={{ fontSize: "1rem", flexShrink: 0 }}>🔬</span>
+              <span style={{ fontSize: "1rem", flexShrink: 0 }}></span>
               <div style={{ fontSize: "0.78rem", color: "#c084fc", lineHeight: 1.5 }}>
                 <strong>Saved as "Bred — Pending Confirmation."</strong><br />
                 <span style={{ color: "var(--muted)" }}>Recheck ~19 days post-breeding. Confirm conception from the sow's breeding cycle card — due date calculates from that date.</span>
@@ -2306,7 +2543,7 @@ function LogBreedModal({ sows, boars, defaultSowId, onSave, onClose }) {
                 <input type="date" value={openDate} onChange={e => { setOpenDate(e.target.value); setNextHeatDate(addDays(e.target.value, 21)); }} style={inputStyle} />
               </div>
               <div>
-                <label style={labelStyle}>🔥 Next Heat (auto)</label>
+                <label style={labelStyle}>Next Heat (auto)</label>
                 <input type="date" value={nextHeatDate} onChange={e => setNextHeatDate(e.target.value)} style={inputStyle} />
                 <div style={{ fontSize: "0.68rem", color: "var(--muted)", marginTop: 3 }}>Default: 21 days after open date</div>
               </div>
@@ -2354,7 +2591,7 @@ function AddExpenseModal({ sows, defaultSowId, onSave, onClose }) {
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal-box">
-        <div className="modal-header"><h3>💸 Add Expense</h3><button className="modal-close" onClick={onClose}>×</button></div>
+        <div className="modal-header"><h3> Add Expense</h3><button className="modal-close" onClick={onClose}>×</button></div>
         <div className="modal-body">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             <div><label style={labelStyle}>Date</label><input type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} /></div>
@@ -2421,8 +2658,8 @@ function AddExpenseModal({ sows, defaultSowId, onSave, onClose }) {
   );
 }
 
-// ─── CUSTOMER PORTAL ─────────────────────────────────────────────────────────
-// ─── WEIGHT CHART (SVG) ──────────────────────────────────────────────────────
+//  CUSTOMER PORTAL 
+//  WEIGHT CHART (SVG) 
 function WeightChart({ weightLog, targetWeight, showDate }) {
   const W = 600, H = 220, PAD = { top: 20, right: 20, bottom: 48, left: 48 };
   const cW = W - PAD.left - PAD.right;
@@ -2545,7 +2782,7 @@ function WeightChart({ weightLog, targetWeight, showDate }) {
   );
 }
 
-// ─── CUSTOMER PIG DETAIL (FULL FEATURED) ─────────────────────────────────────
+//  CUSTOMER PIG DETAIL (FULL FEATURED) 
 function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
   const [open, setOpen] = useState(defaultOpen);
   const [activeTab, setActiveTab] = useState("overview");
@@ -2600,12 +2837,12 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
   const totalExpenses = showmanExpenses.reduce((a, e) => a + (parseFloat(e.amount) || 0), 0);
 
   const EXPENSE_CATS = {
-    feed: { label: "Feed & Supplies", icon: "🌾" },
-    entry: { label: "Show Entry Fees", icon: "🏆" },
-    transport: { label: "Transport", icon: "🚛" },
-    equipment: { label: "Equipment", icon: "🔧" },
-    vet: { label: "Vet & Health", icon: "🩺" },
-    other: { label: "Other", icon: "💰" },
+    feed: { label: "Feed & Supplies", icon: "feed" },
+    entry: { label: "Show Entry Fees", icon: "trophy" },
+    transport: { label: "Transport", icon: "" },
+    equipment: { label: "Equipment", icon: "" },
+    vet: { label: "Vet & Health", icon: "vet" },
+    other: { label: "Other", icon: "" },
   };
 
   // Handlers
@@ -2670,13 +2907,13 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
   };
 
   const tabs = [
-    { id: "overview", label: "📊 Overview" },
-    { id: "weight", label: "⚖️ Weight" },
-    { id: "feed", label: "🌾 Feed" },
-    { id: "health", label: "💉 Health" },
-    { id: "shows", label: "🏆 Shows" },
-    { id: "photos", label: "📸 Photos" },
-    { id: "expenses", label: "💸 My Expenses" },
+    { id: "overview", label: "Overview" },
+    { id: "weight", label: "Weight" },
+    { id: "feed", label: "Feed" },
+    { id: "health", label: "Health" },
+    { id: "shows", label: "Shows" },
+    { id: "photos", label: " Photos" },
+    { id: "expenses", label: " My Expenses" },
   ];
 
   const SectionHeader = ({ title, onAdd, addLabel = "+ Add" }) => (
@@ -2707,14 +2944,14 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
       <div onClick={() => setOpen(o => !o)} style={{ padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", background: open ? "rgba(59,130,246,0.04)" : "transparent", transition: "background 0.15s" }}>
         <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
           <div style={{ width: 56, height: 56, borderRadius: 12, background: "var(--blue-dim)", border: "1px solid rgba(59,130,246,0.2)", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.8rem", flexShrink: 0 }}>
-            {headerPhoto ? <img src={headerPhoto.dataUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : "🐖"}
+            {headerPhoto ? <img src={headerPhoto.dataUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : "—"}
           </div>
           <div>
             <div style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--blue-bright)", marginBottom: 3 }}>{pig.tag}</div>
             <div style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.25rem", fontWeight: 800, letterSpacing: "-0.02em" }}>{pig.color}</div>
             <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginTop: 2 }}>
               {sexIcon(pig.sex)} {pig.sex} · Born {fmt(litter?.farrowDate)}
-              {pig.showGoal?.showDate && <span style={{ marginLeft: 10, color: "var(--green)", fontWeight: 600 }}>🏟 Show: {fmt(pig.showGoal.showDate)}</span>}
+              {pig.showGoal?.showDate && <span style={{ marginLeft: 10, color: "var(--green)", fontWeight: 600 }}> Show: {fmt(pig.showGoal.showDate)}</span>}
             </div>
           </div>
         </div>
@@ -2730,7 +2967,7 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
             )}
             {!pig.showGoal?.targetWeight && <div style={{ fontSize: "0.65rem", color: "var(--muted)", marginTop: 2 }}>Current weight</div>}
           </div>
-          <div style={{ color: "var(--muted)", fontSize: "1rem", transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>▾</div>
+          <div style={{ color: "var(--muted)", fontSize: "1rem", transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}></div>
         </div>
       </div>
 
@@ -2747,7 +2984,7 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
 
           <div style={{ padding: "24px" }}>
 
-            {/* ── OVERVIEW ── */}
+            {/*  OVERVIEW  */}
             {activeTab === "overview" && (
               <div>
                 {/* Stats */}
@@ -2770,7 +3007,7 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
                 {/* Show goal */}
                 <div style={{ background: "var(--surface)", borderRadius: 12, border: "1px solid var(--border)", padding: "16px 18px", marginBottom: 24 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                    <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--amber)" }}>🎯 Show Goal</div>
+                    <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--amber)" }}> Show Goal</div>
                     <button onClick={() => { setGoalDraft({ ...pig.showGoal }); setEditingGoal(true); }} className="btn btn-outline" style={{ fontSize: "0.72rem", padding: "4px 10px" }}>Edit</button>
                   </div>
                   {editingGoal ? (
@@ -2799,7 +3036,7 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
                       {pig.showGoal?.showName && <div><div style={{ fontSize: "0.65rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>Show</div><div style={{ fontWeight: 600, marginTop: 3 }}>{pig.showGoal.showName}</div></div>}
                       {pig.showGoal?.showDate && <div><div style={{ fontSize: "0.65rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>Date</div><div style={{ fontWeight: 600, marginTop: 3, color: "var(--green)" }}>{fmt(pig.showGoal.showDate)}</div></div>}
                       {pig.showGoal?.targetWeight && <div><div style={{ fontSize: "0.65rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>Target Weight</div><div style={{ fontWeight: 600, marginTop: 3, color: "var(--amber)" }}>{pig.showGoal.targetWeight} lbs</div></div>}
-                      {pig.showGoal?.targetWeight && latest && <div><div style={{ fontSize: "0.65rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>Still Needed</div><div style={{ fontWeight: 700, marginTop: 3, color: (pig.showGoal.targetWeight - latest.weight) > 0 ? "var(--amber)" : "var(--green)" }}>{pig.showGoal.targetWeight - latest.weight > 0 ? `+${(pig.showGoal.targetWeight - latest.weight).toFixed(1)} lbs` : "✓ At weight"}</div></div>}
+                      {pig.showGoal?.targetWeight && latest && <div><div style={{ fontSize: "0.65rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>Still Needed</div><div style={{ fontWeight: 700, marginTop: 3, color: (pig.showGoal.targetWeight - latest.weight) > 0 ? "var(--amber)" : "var(--green)" }}>{pig.showGoal.targetWeight - latest.weight > 0 ? `+${(pig.showGoal.targetWeight - latest.weight).toFixed(1)} lbs` : " At weight"}</div></div>}
                     </div>
                   ) : (
                     <div style={{ color: "var(--muted)", fontSize: "0.82rem" }}>No show goal set yet. Click Edit to add your target weight and show date.</div>
@@ -2807,18 +3044,18 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
                 </div>
 
                 {/* Mini weight chart */}
-                <SectionHeader title="⚖️ Weight Progress" />
+                <SectionHeader title="Weight Progress" />
                 <WeightChart weightLog={pig.weightLog} targetWeight={pig.showGoal?.targetWeight} showDate={pig.showGoal?.showDate} />
               </div>
             )}
 
-            {/* ── WEIGHT ── */}
+            {/*  WEIGHT  */}
             {activeTab === "weight" && (
               <div>
                 <div style={{ marginBottom: 24 }}>
                   <WeightChart weightLog={pig.weightLog} targetWeight={pig.showGoal?.targetWeight} showDate={pig.showGoal?.showDate} />
                 </div>
-                <SectionHeader title="⚖️ Weight Log" onAdd={() => setShowAddWeight(true)} addLabel="+ Log Weight" />
+                <SectionHeader title=" Weight Log" onAdd={() => setShowAddWeight(true)} addLabel="+ Log Weight" />
                 {showAddWeight && (
                   <AddRow onSave={addWeight} onCancel={() => { setShowAddWeight(false); setNewWeightVal(""); setNewWeightNote(""); }}>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -2835,7 +3072,7 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
                       <tbody>{[...(pig.weightLog || [])].reverse().map((w, i) => (
                         <tr key={i}>
                           <td>{fmt(w.date)}</td>
-                          <td><strong style={{ color: i === 0 ? "var(--green)" : "var(--text)" }}>{w.weight}</strong>{i === 0 && <span style={{ fontSize: "0.65rem", color: "var(--green)", marginLeft: 6, fontWeight: 700 }}>▲ latest</span>}</td>
+                          <td><strong style={{ color: i === 0 ? "var(--green)" : "var(--text)" }}>{w.weight}</strong>{i === 0 && <span style={{ fontSize: "0.65rem", color: "var(--green)", marginLeft: 6, fontWeight: 700 }}> latest</span>}</td>
                           <td style={{ color: "var(--muted)", fontSize: "0.82rem" }}>{w.notes || "—"}</td>
                         </tr>
                       ))}</tbody>
@@ -2845,10 +3082,10 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
               </div>
             )}
 
-            {/* ── FEED ── */}
+            {/*  FEED  */}
             {activeTab === "feed" && (
               <div>
-                <SectionHeader title="🌾 Feed Program" onAdd={() => setShowAddFeed(true)} addLabel="+ Add Note" />
+                <SectionHeader title=" Feed Program" onAdd={() => setShowAddFeed(true)} addLabel="+ Add Note" />
                 {showAddFeed && (
                   <AddRow onSave={addFeedNote} onCancel={() => { setShowAddFeed(false); setNewFeedNote(""); }}>
                     <div><label style={labelStyle}>Date</label><input type="date" value={newFeedDate} onChange={e => setNewFeedDate(e.target.value)} style={inputStyle} /></div>
@@ -2866,10 +3103,10 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
               </div>
             )}
 
-            {/* ── HEALTH ── */}
+            {/*  HEALTH  */}
             {activeTab === "health" && (
               <div>
-                <SectionHeader title="💉 Vaccinations" onAdd={() => setShowAddVax(true)} addLabel="+ Log Vaccine" />
+                <SectionHeader title=" Vaccinations" onAdd={() => setShowAddVax(true)} addLabel="+ Log Vaccine" />
                 {showAddVax && (
                   <AddRow onSave={addVax} onCancel={() => { setShowAddVax(false); setNewVaxName(""); setNewVaxGivenBy(""); }}>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -2890,10 +3127,10 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
               </div>
             )}
 
-            {/* ── SHOWS ── */}
+            {/*  SHOWS  */}
             {activeTab === "shows" && (
               <div>
-                <SectionHeader title="🏆 Show Results" onAdd={() => setShowAddResult(true)} addLabel="+ Add Result" />
+                <SectionHeader title=" Show Results" onAdd={() => setShowAddResult(true)} addLabel="+ Add Result" />
                 {showAddResult && (
                   <AddRow onSave={addShowResult} onCancel={() => { setShowAddResult(false); setNewResultShow(""); setNewResultClass(""); setNewResultPlacing(""); }}>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -2917,17 +3154,17 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
               </div>
             )}
 
-            {/* ── PHOTOS ── */}
+            {/*  PHOTOS  */}
             {activeTab === "photos" && (
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                  <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--blue-bright)" }}>📸 Photos</div>
+                  <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--blue-bright)" }}> Photos</div>
                   <button onClick={() => photoInputRef.current?.click()} className="btn btn-primary" style={{ fontSize: "0.75rem", padding: "6px 14px" }}>+ Upload Photos</button>
                   <input ref={photoInputRef} type="file" accept="image/*" multiple onChange={handlePhotoUpload} style={{ display: "none" }} />
                 </div>
                 {(pig.photos || []).length === 0 ? (
                   <div style={{ background: "var(--surface)", borderRadius: 12, border: "2px dashed var(--border)", padding: "48px 24px", textAlign: "center", cursor: "pointer" }} onClick={() => photoInputRef.current?.click()}>
-                    <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>📷</div>
+                    <div style={{ fontSize: "2.5rem", marginBottom: 12 }}></div>
                     <div style={{ fontFamily: "'Syne', sans-serif", fontSize: "1rem", fontWeight: 700, marginBottom: 6 }}>No photos yet</div>
                     <div style={{ color: "var(--muted)", fontSize: "0.82rem" }}>Click to upload photos of your pig</div>
                   </div>
@@ -2952,11 +3189,11 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
               </div>
             )}
 
-            {/* ── EXPENSES ── */}
+            {/*  EXPENSES  */}
             {activeTab === "expenses" && (
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                  <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--blue-bright)" }}>💸 My Expenses</div>
+                  <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--blue-bright)" }}> My Expenses</div>
                   <button onClick={() => setShowAddExpense(true)} className="btn btn-outline" style={{ fontSize: "0.72rem", padding: "4px 10px" }}>+ Add Expense</button>
                 </div>
                 <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginBottom: 14 }}>These expenses are only visible to you — your breeder cannot see them.</div>
@@ -3017,7 +3254,7 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
 }
 
 
-// ─── SHOWMAN SIGNUP ────────────────────────────────────────────────────────────
+//  SHOWMAN SIGNUP 
 function ShowmanSignup({ onSignup, onBack }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -3059,7 +3296,7 @@ function ShowmanSignup({ onSignup, onBack }) {
         <button onClick={onBack} style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: "0.82rem", fontFamily: "'Space Grotesk', sans-serif", marginBottom: 28, display: "flex", alignItems: "center", gap: 6, padding: 0, fontWeight: 600 }}>← Back</button>
         <div style={{ background: "var(--card-bg)", borderRadius: 20, border: "1px solid var(--border)", padding: "36px 32px", boxShadow: "0 24px 60px rgba(0,0,0,0.5)" }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>🤠</div>
+            
             <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.6rem", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 8 }}>Create Showman Account</h2>
             <p style={{ color: "var(--muted)", fontSize: "0.84rem", lineHeight: 1.6 }}>Track your pigs, log weights, record show results — all in one place.</p>
           </div>
@@ -3084,7 +3321,7 @@ function ShowmanSignup({ onSignup, onBack }) {
   );
 }
 
-// ─── SHOWMAN LOGIN ─────────────────────────────────────────────────────────────
+//  SHOWMAN LOGIN 
 function ShowmanLogin({ onLogin, onBack, onSignup }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -3112,7 +3349,7 @@ function ShowmanLogin({ onLogin, onBack, onSignup }) {
         <button onClick={onBack} style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: "0.82rem", fontFamily: "'Space Grotesk', sans-serif", marginBottom: 28, display: "flex", alignItems: "center", gap: 6, padding: 0, fontWeight: 600 }}>← Back</button>
         <div style={{ background: "var(--card-bg)", borderRadius: 20, border: "1px solid var(--border)", padding: "36px 32px", boxShadow: "0 24px 60px rgba(0,0,0,0.5)" }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>🤠</div>
+            
             <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.6rem", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 8 }}>Showman Sign In</h2>
             <p style={{ color: "var(--muted)", fontSize: "0.84rem", lineHeight: 1.6 }}>Access your pig tracking dashboard.</p>
           </div>
@@ -3133,9 +3370,9 @@ function ShowmanLogin({ onLogin, onBack, onSignup }) {
   );
 }
 
-// ─── SHOWMAN DASHBOARD ─────────────────────────────────────────────────────────
+//  SHOWMAN DASHBOARD 
 
-// ─── SHOWMAN TASKS ─────────────────────────────────────────────────────────────
+//  SHOWMAN TASKS 
 function ShowmanTasks({ profile, pigs }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -3216,7 +3453,7 @@ function ShowmanTasks({ profile, pigs }) {
 
       {pending.length === 0 && completed.length === 0 ? (
         <div style={{ background: "var(--card-bg)", borderRadius: 12, border: "1px solid var(--border)", padding: "32px 24px", textAlign: "center" }}>
-          <div style={{ fontSize: "2rem", marginBottom: 8 }}>✅</div>
+          
           <div style={{ color: "var(--muted)", fontSize: "0.88rem" }}>No tasks yet. Add recurring reminders for feeding, weighing, or vaccinations.</div>
         </div>
       ) : (
@@ -3233,7 +3470,7 @@ function ShowmanTasks({ profile, pigs }) {
           {completed.length > 0 && (
             <div style={{ marginTop: 12 }}>
               <button onClick={() => setShowCompleted(p => !p)} style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: "0.75rem", fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, padding: 0, display: "flex", alignItems: "center", gap: 6 }}>
-                {showCompleted ? "▾" : "▸"} {completed.length} completed task{completed.length !== 1 ? "s" : ""}
+                {showCompleted ? "" : ""} {completed.length} completed task{completed.length !== 1 ? "s" : ""}
               </button>
               {showCompleted && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10 }}>
@@ -3267,13 +3504,13 @@ function TaskCard({ task, pigs, isDue, freqLabel, freqColor, onComplete, onDelet
     <div style={{ background: "var(--card-bg)", borderRadius: 12, border: `1px solid ${isDue ? "rgba(239,68,68,0.3)" : isCompleted ? "rgba(16,185,129,0.2)" : "var(--border)"}`, overflow: "hidden", opacity: isCompleted ? 0.75 : 1 }}>
       <div style={{ padding: "14px 16px", display: "flex", alignItems: "center", gap: 12 }}>
         <div style={{ width: 26, height: 26, borderRadius: "50%", border: `2px solid ${isCompleted ? "var(--green)" : isDue ? "var(--red)" : "var(--border)"}`, background: isCompleted ? "var(--green)" : isDue ? "rgba(239,68,68,0.08)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: "0.8rem", color: "white", fontWeight: 700 }}>
-          {isCompleted ? "✓" : ""}
+          {isCompleted ? "" : ""}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 600, fontSize: "0.9rem", marginBottom: 3, textDecoration: isCompleted ? "line-through" : "none", color: isCompleted ? "var(--muted)" : "var(--text)" }}>{task.title}</div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <span style={{ fontSize: "0.7rem", fontWeight: 700, color: freqColor[task.frequency] }}>{freqLabel[task.frequency]}</span>
-            {pig && <span style={{ fontSize: "0.7rem", color: "var(--muted)" }}>· 🐖 {pig.name || pig.tag}</span>}
+            {pig && <span style={{ fontSize: "0.7rem", color: "var(--muted)" }}>· {pig.name || pig.tag}</span>}
             {task.next_due && !isCompleted && <span style={{ fontSize: "0.7rem", color: isDue ? "var(--red)" : "var(--muted)" }}>· Due {new Date(task.next_due).toLocaleDateString()}</span>}
             {isCompleted && task.completed_at && <span style={{ fontSize: "0.7rem", color: "var(--muted)" }}>· Done {new Date(task.completed_at).toLocaleDateString()}</span>}
             {isCompleted && task.completion_note && <span style={{ fontSize: "0.7rem", color: "var(--muted)", fontStyle: "italic" }}>· "{task.completion_note}"</span>}
@@ -3282,7 +3519,7 @@ function TaskCard({ task, pigs, isDue, freqLabel, freqColor, onComplete, onDelet
         <div style={{ display: "flex", gap: 6 }}>
           {!isCompleted && (
             <button onClick={() => setShowNoteInput(p => !p)} style={{ background: "none", border: `1px solid ${isDue ? "rgba(16,185,129,0.4)" : "var(--border)"}`, borderRadius: 6, padding: "4px 10px", cursor: "pointer", color: isDue ? "var(--green)" : "var(--muted)", fontSize: "0.72rem", fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600 }}>
-              ✓ Done
+               Done
             </button>
           )}
           <button onClick={() => onDelete(task.id)} style={{ background: "none", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 6, padding: "4px 10px", cursor: "pointer", color: "var(--red)", fontSize: "0.72rem", fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600 }}>
@@ -3390,7 +3627,7 @@ function ShowmanDashboard({ profile, onLogout }) {
           <div style={{ display: "flex", gap: 4 }}>
             {["pigs", "tasks"].map(t => (
               <button key={t} onClick={() => setDashTab(t)} style={{ background: dashTab === t ? "rgba(16,185,129,0.15)" : "none", border: "none", color: dashTab === t ? "var(--green)" : "var(--muted)", cursor: "pointer", fontSize: "0.72rem", fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", padding: "4px 10px", borderRadius: 6 }}>
-                {t === "pigs" ? "🐖 My Pigs" : "✅ Tasks"}
+                {t === "pigs" ? <><IconMyPigs /><span>My Pigs</span></> : <><IconTasks /><span>Tasks</span></>}
               </button>
             ))}
           </div>
@@ -3400,7 +3637,7 @@ function ShowmanDashboard({ profile, onLogout }) {
             <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text)" }}>{profile.name}</div>
             <div style={{ fontSize: "0.65rem", color: "var(--muted)" }}>{profile.club || profile.city || "Showman"}</div>
           </div>
-          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem" }}>🤠</div>
+          
           <button onClick={onLogout} className="btn btn-outline" style={{ fontSize: "0.75rem", padding: "6px 12px" }}>Sign Out</button>
         </div>
       </div>
@@ -3409,7 +3646,7 @@ function ShowmanDashboard({ profile, onLogout }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32, flexWrap: "wrap", gap: 14 }}>
           <div>
             <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--green)", marginBottom: 6 }}>Welcome back</div>
-            <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "2rem", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: 8 }}>Hey, {profile.name.split(" ")[0]} 👋</h2>
+            <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "2rem", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: 8 }}>Hey, {profile.name.split(" ")[0]}</h2>
             <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{pigs.length} pig{pigs.length !== 1 ? "s" : ""} in your program</p>
           </div>
           <button className="btn btn-primary" onClick={() => setShowAddPig(true)} style={{ background: "var(--green)", boxShadow: "0 0 20px rgba(16,185,129,0.3)" }}>+ Add Pig</button>
@@ -3419,7 +3656,7 @@ function ShowmanDashboard({ profile, onLogout }) {
           <div style={{ textAlign: "center", padding: 60, color: "var(--muted)" }}>Loading...</div>
         ) : dashTab === "pigs" && pigs.length === 0 ? (
           <div style={{ background: "var(--card-bg)", borderRadius: 16, border: "1px solid var(--border)", padding: "60px 40px", textAlign: "center" }}>
-            <div style={{ fontSize: "3rem", marginBottom: 16 }}>🐖</div>
+            
             <div style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.3rem", fontWeight: 800, marginBottom: 8 }}>No Pigs Yet</div>
             <div style={{ color: "var(--muted)", fontSize: "0.88rem", marginBottom: 24 }}>Add your first pig to start tracking weights, feed, and show results.</div>
             <button className="btn btn-primary" onClick={() => setShowAddPig(true)} style={{ background: "var(--green)" }}>+ Add Your First Pig</button>
@@ -3430,7 +3667,7 @@ function ShowmanDashboard({ profile, onLogout }) {
               <div className="card" key={pig.id} onClick={() => setSelectedPig(pig)}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                   <div className="card-tag">{pig.tag || "No Tag"}</div>
-                  <span className={`badge ${pig.sex === "Gilt" ? "badge-gilt" : "badge-barrow"}`}>{pig.sex === "Gilt" ? "♀" : "♂"} {pig.sex}</span>
+                  <span className={`badge ${pig.sex === "Gilt" ? "badge-gilt" : "badge-barrow"}`}>{pig.sex === "Gilt" ? "" : ""} {pig.sex}</span>
                 </div>
                 <h3 style={{ fontSize: "1.1rem", marginBottom: 4 }}>{pig.name || pig.tag || "Unnamed Pig"}</h3>
                 <div className="card-meta">{pig.breed || "Unknown breed"}</div>
@@ -3451,7 +3688,7 @@ function ShowmanDashboard({ profile, onLogout }) {
   );
 }
 
-// ─── SHOWMAN ADD PIG MODAL ─────────────────────────────────────────────────────
+//  SHOWMAN ADD PIG MODAL 
 function ShowmanAddPigModal({ onSave, onClose }) {
   const [tag, setTag] = useState("");
   const [name, setName] = useState("");
@@ -3520,7 +3757,7 @@ function ShowmanAddPigModal({ onSave, onClose }) {
   );
 }
 
-// ─── SHOWMAN PIG DETAIL ────────────────────────────────────────────────────────
+//  SHOWMAN PIG DETAIL 
 function ShowmanPigDetail({ pig, profile, onBack, onDelete }) {
   const [weightLog, setWeightLog] = useState([]);
   const [feedNotes, setFeedNotes] = useState([]);
@@ -3615,7 +3852,7 @@ function ShowmanPigDetail({ pig, profile, onBack, onDelete }) {
         <div className="tab-bar" style={{ marginBottom: 20 }}>
           {["weight", "feed", "vaccines", "shows"].map(t => (
             <button key={t} className={`tab-btn ${tab === t ? "active" : ""}`} onClick={() => setTab(t)}>
-              {t === "weight" ? "⚖️ Weight" : t === "feed" ? "🌽 Feed" : t === "vaccines" ? "💉 Vaccines" : "🏆 Shows"}
+              {t === "weight" ? "Weight" : t === "feed" ? "Feed" : t === "vaccines" ? "Vaccines" : "Shows"}
             </button>
           ))}
         </div>
@@ -3710,7 +3947,7 @@ function CustomerPortal({ customer, data, onUpdatePig, onLogout }) {
             <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text)" }}>{customer.name}</div>
             <div style={{ fontSize: "0.65rem", color: "var(--muted)" }}>{customer.club || customer.city}</div>
           </div>
-          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--blue-dim)", border: "1px solid rgba(59,130,246,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem" }}>🤠</div>
+          
           <button onClick={onLogout} className="btn btn-outline" style={{ fontSize: "0.75rem", padding: "6px 12px" }}>Sign Out</button>
         </div>
       </div>
@@ -3720,7 +3957,7 @@ function CustomerPortal({ customer, data, onUpdatePig, onLogout }) {
         {/* Welcome */}
         <div style={{ marginBottom: 32 }}>
           <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--blue-bright)", marginBottom: 6 }}>Welcome back</div>
-          <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "2rem", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: 8 }}>Hey, {customer.name.split(" ")[0]} 👋</h2>
+          <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "2rem", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: 8 }}>Hey, {customer.name.split(" ")[0]}</h2>
           <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
             {data.farm.name} · {myPigs.length} pig{myPigs.length !== 1 ? "s" : ""} assigned to you
           </p>
@@ -3728,7 +3965,7 @@ function CustomerPortal({ customer, data, onUpdatePig, onLogout }) {
 
         {myPigs.length === 0 ? (
           <div style={{ background: "var(--card-bg)", borderRadius: 16, border: "1px solid var(--border)", padding: "60px 40px", textAlign: "center" }}>
-            <div style={{ fontSize: "3rem", marginBottom: 16 }}>🐖</div>
+            
             <div style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.3rem", fontWeight: 800, marginBottom: 8 }}>No Pigs Assigned Yet</div>
             <div style={{ color: "var(--muted)", fontSize: "0.88rem" }}>Your breeder hasn't assigned any pigs to your account yet. Check back soon!</div>
           </div>
@@ -3742,7 +3979,7 @@ function CustomerPortal({ customer, data, onUpdatePig, onLogout }) {
   );
 }
 
-// ─── CUSTOMER LOGIN ────────────────────────────────────────────────────────────
+//  CUSTOMER LOGIN 
 function CustomerLogin({ data, onLogin, onBack }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -3771,7 +4008,7 @@ function CustomerLogin({ data, onLogin, onBack }) {
         <button onClick={onBack} style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: "0.82rem", fontFamily: "'Space Grotesk', sans-serif", marginBottom: 28, display: "flex", alignItems: "center", gap: 6, padding: 0, fontWeight: 600 }}>← Back</button>
         <div style={{ background: "var(--card-bg)", borderRadius: 20, border: "1px solid var(--border)", padding: "36px 32px", boxShadow: "0 24px 60px rgba(0,0,0,0.5)" }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>🤠</div>
+            <div style={{ fontSize: "2.5rem", marginBottom: 12 }}></div>
             <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.6rem", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 8 }}>Customer Sign In</h2>
             <p style={{ color: "var(--muted)", fontSize: "0.84rem", lineHeight: 1.6 }}>Enter the name and email your breeder has on file for you.</p>
           </div>
@@ -3803,7 +4040,7 @@ function CustomerLogin({ data, onLogin, onBack }) {
   );
 }
 
-// ─── BREEDER LOGIN ─────────────────────────────────────────────────────────────
+//  BREEDER LOGIN 
 function BreederLogin({ onLogin, onBack }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -3831,7 +4068,7 @@ function BreederLogin({ onLogin, onBack }) {
         <button onClick={onBack} style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: "0.82rem", fontFamily: "'Space Grotesk', sans-serif", marginBottom: 28, display: "flex", alignItems: "center", gap: 6, padding: 0, fontWeight: 600 }}>← Back</button>
         <div style={{ background: "var(--card-bg)", borderRadius: 20, border: "1px solid var(--border)", padding: "36px 32px", boxShadow: "0 24px 60px rgba(0,0,0,0.5)" }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>🐷</div>
+            
             <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.6rem", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 8 }}>Breeder Sign In</h2>
             <p style={{ color: "var(--muted)", fontSize: "0.84rem", lineHeight: 1.6 }}>
               Access your full farm management dashboard.
@@ -3860,7 +4097,7 @@ function BreederLogin({ onLogin, onBack }) {
     </div>
   );
 }
-// ─── BREEDER SIGNUP ───────────────────────────────────────────────────────────
+//  BREEDER SIGNUP 
 function BreederSignup({ onSignup, onBack }) {
   const [farmName, setFarmName] = useState("");
   const [ownerName, setOwnerName] = useState("");
@@ -3898,7 +4135,7 @@ function BreederSignup({ onSignup, onBack }) {
         <button onClick={onBack} style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: "0.82rem", fontFamily: "'Space Grotesk', sans-serif", marginBottom: 28, display: "flex", alignItems: "center", gap: 6, padding: 0, fontWeight: 600 }}>← Back</button>
         <div style={{ background: "var(--card-bg)", borderRadius: 20, border: "1px solid var(--border)", padding: "36px 32px", boxShadow: "0 24px 60px rgba(0,0,0,0.5)" }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>🐷</div>
+            
             <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.6rem", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 8 }}>Create Your Account</h2>
             <p style={{ color: "var(--muted)", fontSize: "0.84rem", lineHeight: 1.6 }}>Start your 14-day free trial. No credit card required.</p>
           </div>
@@ -3938,8 +4175,8 @@ function BreederSignup({ onSignup, onBack }) {
   );
 }
 
-// ─── LANDING PAGE ─────────────────────────────────────────────────────────────
-function LandingPage({ onSelectBreeder, onSelectCustomer, onSignup, onSignupShowman, farmName }) {
+//  LANDING PAGE 
+function LandingPage({ onSelectBreeder, onSelectCustomer, onSignup, onSignupShowman }) {
   return (
     <div style={{ minHeight: "100vh", background: "var(--black)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", position: "relative", overflow: "hidden" }}>
       <style>{css}</style>
@@ -3949,12 +4186,11 @@ function LandingPage({ onSelectBreeder, onSelectCustomer, onSignup, onSignupShow
 
       {/* Logo */}
       <div style={{ textAlign: "center", marginBottom: 52, position: "relative" }}>
-        <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--blue-bright)", marginBottom: 14, opacity: 0.8 }}>{farmName}</div>
         <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: "clamp(2.4rem, 6vw, 3.8rem)", fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1, background: "linear-gradient(135deg, #ffffff 0%, var(--blue-bright) 60%, #93c5fd 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 16 }}>
           ShowPig Connect
         </h1>
         <p style={{ color: "var(--muted)", fontSize: "1rem", maxWidth: 380, margin: "0 auto", lineHeight: 1.7 }}>
-          Farm management & customer portal for show pig breeders.
+          Farm management & showman portal for show pig breeders.
         </p>
       </div>
 
@@ -3966,7 +4202,7 @@ function LandingPage({ onSelectBreeder, onSelectCustomer, onSignup, onSignupShow
             onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(59,130,246,0.6)"; e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 20px 48px rgba(29,78,216,0.25)"; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
             <div style={{ position: "absolute", top: 0, right: 0, width: 140, height: 140, background: "radial-gradient(circle, rgba(29,78,216,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
-            <div style={{ fontSize: "2.8rem", marginBottom: 16 }}>🐷</div>
+
             <div style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--blue-bright)", marginBottom: 8 }}>For the Breeder</div>
             <div style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.4rem", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.02em", marginBottom: 10 }}>Breeder Dashboard</div>
             <p style={{ fontSize: "0.83rem", color: "var(--muted)", lineHeight: 1.6, marginBottom: 20 }}>
@@ -3989,7 +4225,7 @@ function LandingPage({ onSelectBreeder, onSelectCustomer, onSignup, onSignupShow
             onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(16,185,129,0.5)"; e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 20px 48px rgba(16,185,129,0.15)"; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
             <div style={{ position: "absolute", top: 0, right: 0, width: 140, height: 140, background: "radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
-            <div style={{ fontSize: "2.8rem", marginBottom: 16 }}>🤠</div>
+
             <div style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--green)", marginBottom: 8 }}>For the Showman</div>
             <div style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.4rem", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.02em", marginBottom: 10 }}>Showman Portal</div>
             <p style={{ fontSize: "0.83rem", color: "var(--muted)", lineHeight: 1.6, marginBottom: 20 }}>
@@ -4014,7 +4250,7 @@ function LandingPage({ onSelectBreeder, onSelectCustomer, onSignup, onSignupShow
   );
 }
 
-// ─── APP SHELL ─────────────────────────────────────────────────────────────────
+//  APP SHELL 
 // Portal state: "landing" | "breeder-login" | "breeder-signup" | "breeder" | "showman-login" | "showman-signup" | "showman" | "customer-login" | "customer"
 export default function App() {
   const [portal, setPortal] = useState("landing");
@@ -4262,13 +4498,13 @@ const saveShowman = async (sm) => {
   };
 
   const navItems = [
-    { id: "dashboard", icon: "🏠", label: "Dashboard", section: null },
-    { id: "sows", icon: "🐷", label: "Sow Herd", section: "Herd Management" },
-    { id: "boars", icon: "🐗", label: "Service Sires", section: null },
-    { id: "breeding", icon: "📅", label: "Breeding Calendar", section: null },
-    { id: "pigs", icon: "🐖", label: "Individual Pigs", section: "Marketplace" },
-    { id: "showmen", icon: "🤠", label: "Customers", section: null },
-    { id: "reports", icon: "📊", label: "Financial Reports", section: "Analytics" },
+    { id: "dashboard", icon: <IconDashboard />, label: "Dashboard", section: null },
+    { id: "sows", icon: <IconSow />, label: "Sow Herd", section: "Herd Management" },
+    { id: "boars", icon: <IconBoar />, label: "Service Sires", section: null },
+    { id: "breeding", icon: <IconCalendar />, label: "Breeding Calendar", section: null },
+    { id: "pigs", icon: <IconPigs />, label: "Individual Pigs", section: "Marketplace" },
+    { id: "showmen", icon: <IconCustomers />, label: "Customers", section: null },
+    { id: "reports", icon: <IconReports />, label: "Financial Reports", section: "Analytics" },
   ];
 
   const activePage = view.page.replace("Detail", "").replace("litter", "sow").replace("breeding", "breeding");
@@ -4277,7 +4513,8 @@ const saveShowman = async (sm) => {
     switch (view.page) {
       case "dashboard": return <Dashboard data={data} />;
       case "sows": return <SowsView data={data} setView={setView} onAddExpense={(id) => { setExpenseDefaultSow(id); setShowExpenseModal(true); }} onAddSow={() => { setEditSow(null); setShowSowModal(true); }} onEditSow={(sow) => { setEditSow(sow); setShowSowModal(true); }} onDeleteSow={deleteSow} />;
-      case "sowDetail": return <SowDetail data={data} id={view.id} setView={setView} onAddExpense={(id) => { setExpenseDefaultSow(id); setShowExpenseModal(true); }} onLogBreed={(id) => { setBreedDefaultSow(id); setShowBreedModal(true); }} onRecordFarrow={(id) => { setFarrowDefaultSow(id); setShowFarrowModal(true); }} onMarkMissed={(sowId, cycleId) => setData(prev => ({ ...prev, sows: prev.sows.map(s => s.id !== sowId ? s : { ...s, breedingCycles: (s.breedingCycles||[]).map(c => c.id !== cycleId ? c : { ...c, missed: true, missedDate: new Date().toISOString().split("T")[0] }) }) }))} onConfirmConceived={(sowId, cycleId) => setData(prev => ({ ...prev, sows: prev.sows.map(s => s.id !== sowId ? s : { ...s, breedingCycles: (s.breedingCycles||[]).map(c => c.id !== cycleId ? c : { ...c, conceived: true, conceiveDate: new Date().toISOString().split("T")[0] }) }) }))} onDeleteCycle={deleteCycle} />;
+      case "sowDetail": return <SowDetail data={data} id={view.id} setView={setView} onAddExpense={(id) => { setExpenseDefaultSow(id); setShowExpenseModal(true); }} onLogBreed={(id) => { setBreedDefaultSow(id); setShowBreedModal(true); }} onRecordFarrow={(id) => { setFarrowDefaultSow(id); setShowFarrowModal(true); }} onMarkMissed={(sowId, cycleId) => setData(prev => ({ ...prev, sows: prev.sows.map(s => s.id !== sowId ? s : { ...s, breedingCycles: (s.breedingCycles||[]).map(c => c.id !== cycleId ? c : { ...c, missed: true, missedDate: new Date().toISOString().split("T")[0] }) }) }))} 
+      onConfirmConceived={async (sowId, cycleId) => {const today = new Date().toISOString().split("T")[0];await supabase.from("breeding_cycles").update({ conceived: true, conceive_date: today }).eq("id", cycleId); setData(prev => ({ ...prev, sows: prev.sows.map(s => s.id !== sowId ? s : { ...s, breedingCycles: (s.breedingCycles||[]).map(c => c.id !== cycleId ? c : { ...c, conceived: true, conceiveDate: today }) }) }));}} onDeleteCycle={deleteCycle} />;
       case "litterDetail": return <LitterDetail data={data} id={view.id} setView={setView} onUpdateLitter={() => {}} onAddPigToLitter={(litterId) => { setAddPigLitterId(litterId); setShowAddPigModal(true); }} />;
       case "boars": return <BoarsView data={data} onAddBoar={() => { setEditBoar(null); setShowBoarModal(true); }} onEditBoar={(boar) => { setEditBoar(boar); setShowBoarModal(true); }} onDeleteBoar={deleteBoar} />;
       case "breeding": return <BreedingCalendar data={data} setView={setView} onLogBreed={(id) => { setBreedDefaultSow(id); setShowBreedModal(true); }} />;
@@ -4289,11 +4526,11 @@ const saveShowman = async (sm) => {
     }
   };
 
-  // ── Portal routing ───────────────────────────────────────────────────────
+  //  Portal routing 
  if (loading) return <div style={{ color: 'white', padding: 40, fontSize: '1.2rem' }}>Loading...</div>
 if (!data && portal === 'breeder') return <div style={{ color: 'white', padding: 40 }}>Could not load farm data.</div>
   if (portal === "landing") {
-    return <LandingPage farmName={data.farm.name} onSelectBreeder={() => setPortal("breeder-login")} onSelectCustomer={() => setPortal("showman-login")} onSignup={() => setPortal("breeder-signup")} onSignupShowman={() => setPortal("showman-signup")} />;
+    return <LandingPage onSelectBreeder={() => setPortal("breeder-login")} onSelectCustomer={() => setPortal("showman-login")} onSignup={() => setPortal("breeder-signup")} onSignupShowman={() => setPortal("showman-signup")} />;
   }
   if (portal === "breeder-login") {
     return <BreederLogin onLogin={() => setPortal("breeder")} onBack={() => setPortal("landing")} />;
@@ -4319,7 +4556,7 @@ if (!data && portal === 'breeder') return <div style={{ color: 'white', padding:
     return <CustomerPortal customer={freshCustomer} data={data} onUpdatePig={updatePig} onLogout={() => { setLoggedInCustomer(null); setPortal("landing"); }} />;
   }
 
-  // ── Breeder portal ────────────────────────────────────────────────────────
+  //  Breeder portal 
   return (
     <>
       <style>{css}</style>
