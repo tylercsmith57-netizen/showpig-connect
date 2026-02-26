@@ -3006,6 +3006,460 @@ function CustomerPigCard({ pig, data, onUpdatePig, defaultOpen = false }) {
   );
 }
 
+
+// ─── SHOWMAN SIGNUP ────────────────────────────────────────────────────────────
+function ShowmanSignup({ onSignup, onBack }) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [club, setClub] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSignup = async () => {
+    setError("");
+    if (!name.trim()) { setError("Please enter your name."); return; }
+    if (!email.trim()) { setError("Please enter your email."); return; }
+    if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
+    if (password !== confirm) { setError("Passwords do not match."); return; }
+    setLoading(true);
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: name, account_type: "showman" } }
+    });
+    if (authError) { setError(authError.message); setLoading(false); return; }
+    // Create showman profile
+    const { error: profileError } = await supabase.from("showman_profiles").insert({
+      id: authData.user.id,
+      name, email, city: city || null, state: state || null, club: club || null
+    });
+    setLoading(false);
+    if (profileError) { setError("Account created but profile failed. Please contact support."); return; }
+    onSignup();
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "var(--black)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <style>{css}</style>
+      <div style={{ width: "100%", maxWidth: 440 }}>
+        <button onClick={onBack} style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: "0.82rem", fontFamily: "'Space Grotesk', sans-serif", marginBottom: 28, display: "flex", alignItems: "center", gap: 6, padding: 0, fontWeight: 600 }}>← Back</button>
+        <div style={{ background: "var(--card-bg)", borderRadius: 20, border: "1px solid var(--border)", padding: "36px 32px", boxShadow: "0 24px 60px rgba(0,0,0,0.5)" }}>
+          <div style={{ textAlign: "center", marginBottom: 28 }}>
+            <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>🤠</div>
+            <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.6rem", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 8 }}>Create Showman Account</h2>
+            <p style={{ color: "var(--muted)", fontSize: "0.84rem", lineHeight: 1.6 }}>Track your pigs, log weights, record show results — all in one place.</p>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div><label style={labelStyle}>Full Name</label><input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Tyler Owens" style={inputStyle} autoFocus /></div>
+            <div><label style={labelStyle}>Email</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" style={inputStyle} /></div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div><label style={labelStyle}>City</label><input type="text" value={city} onChange={e => setCity(e.target.value)} placeholder="Abilene" style={inputStyle} /></div>
+              <div><label style={labelStyle}>State</label><input type="text" value={state} onChange={e => setState(e.target.value)} placeholder="TX" style={inputStyle} /></div>
+            </div>
+            <div><label style={labelStyle}>4-H / FFA Club (optional)</label><input type="text" value={club} onChange={e => setClub(e.target.value)} placeholder="Taylor County 4-H" style={inputStyle} /></div>
+            <div><label style={labelStyle}>Password</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" style={inputStyle} /></div>
+            <div><label style={labelStyle}>Confirm Password</label><input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSignup()} placeholder="••••••••" style={inputStyle} /></div>
+            {error && <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 8, padding: "10px 14px", fontSize: "0.8rem", color: "var(--red)" }}>{error}</div>}
+            <button className="btn btn-primary" onClick={handleSignup} disabled={loading} style={{ width: "100%", justifyContent: "center", marginTop: 4, opacity: loading ? 0.7 : 1, fontSize: "0.9rem", padding: "12px", background: "var(--green)", boxShadow: "0 0 20px rgba(16,185,129,0.3)" }}>
+              {loading ? "Creating account..." : "Create Account →"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── SHOWMAN LOGIN ─────────────────────────────────────────────────────────────
+function ShowmanLogin({ onLogin, onBack, onSignup }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    setError("");
+    if (!email.trim()) { setError("Please enter your email."); return; }
+    if (!password.trim()) { setError("Please enter your password."); return; }
+    setLoading(true);
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    if (authError) { setError("Invalid email or password."); setLoading(false); return; }
+    // Load showman profile
+    const { data: profile } = await supabase.from("showman_profiles").select("*").eq("id", authData.user.id).single();
+    setLoading(false);
+    if (!profile) { setError("No showman account found. Please sign up first."); return; }
+    onLogin(profile);
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "var(--black)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <style>{css}</style>
+      <div style={{ width: "100%", maxWidth: 400 }}>
+        <button onClick={onBack} style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: "0.82rem", fontFamily: "'Space Grotesk', sans-serif", marginBottom: 28, display: "flex", alignItems: "center", gap: 6, padding: 0, fontWeight: 600 }}>← Back</button>
+        <div style={{ background: "var(--card-bg)", borderRadius: 20, border: "1px solid var(--border)", padding: "36px 32px", boxShadow: "0 24px 60px rgba(0,0,0,0.5)" }}>
+          <div style={{ textAlign: "center", marginBottom: 28 }}>
+            <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>🤠</div>
+            <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.6rem", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 8 }}>Showman Sign In</h2>
+            <p style={{ color: "var(--muted)", fontSize: "0.84rem", lineHeight: 1.6 }}>Access your pig tracking dashboard.</p>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div><label style={labelStyle}>Email</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && handleLogin()} placeholder="you@example.com" style={inputStyle} autoFocus /></div>
+            <div><label style={labelStyle}>Password</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handleLogin()} placeholder="••••••••" style={inputStyle} /></div>
+            {error && <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 8, padding: "10px 14px", fontSize: "0.8rem", color: "var(--red)" }}>{error}</div>}
+            <button className="btn btn-primary" onClick={handleLogin} disabled={loading} style={{ width: "100%", justifyContent: "center", marginTop: 4, opacity: loading ? 0.7 : 1, fontSize: "0.9rem", padding: "12px", background: "var(--green)", boxShadow: "0 0 20px rgba(16,185,129,0.3)" }}>
+              {loading ? "Signing in..." : "Enter Dashboard →"}
+            </button>
+            <button onClick={onSignup} style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: "0.8rem", fontFamily: "'Space Grotesk', sans-serif", textAlign: "center", padding: "4px", fontWeight: 600 }}>
+              No account? <span style={{ color: "var(--green)" }}>Sign up free →</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── SHOWMAN DASHBOARD ─────────────────────────────────────────────────────────
+function ShowmanDashboard({ profile, onLogout }) {
+  const [pigs, setPigs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddPig, setShowAddPig] = useState(false);
+  const [selectedPig, setSelectedPig] = useState(null);
+
+  useEffect(() => {
+    loadPigs();
+  }, []);
+
+  const loadPigs = async () => {
+    setLoading(true);
+    const { data } = await supabase.from("showman_pigs").select("*").eq("owner_id", profile.id).order("created_at", { ascending: false });
+    setPigs(data || []);
+    setLoading(false);
+  };
+
+  const addPig = async (pig) => {
+    const { data: newPig } = await supabase.from("showman_pigs").insert({ ...pig, owner_id: profile.id }).select().single();
+    if (newPig) { setPigs(prev => [newPig, ...prev]); setShowAddPig(false); }
+  };
+
+  const deletePig = async (id) => {
+    if (!window.confirm("Delete this pig?")) return;
+    await supabase.from("showman_pigs").delete().eq("id", id);
+    setPigs(prev => prev.filter(p => p.id !== id));
+    if (selectedPig?.id === id) setSelectedPig(null);
+  };
+
+  if (selectedPig) return <ShowmanPigDetail pig={selectedPig} profile={profile} onBack={() => { setSelectedPig(null); loadPigs(); }} onDelete={deletePig} />;
+
+  return (
+    <div style={{ minHeight: "100vh", background: "var(--black)" }}>
+      <style>{css}</style>
+      <div style={{ background: "var(--charcoal)", borderBottom: "1px solid var(--border)", padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 60, position: "sticky", top: 0, zIndex: 100 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.1rem", fontWeight: 800, letterSpacing: "-0.02em", background: "linear-gradient(135deg, #fff 0%, var(--green) 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>ShowPig Connect</div>
+          <div style={{ width: 1, height: 18, background: "var(--border)" }} />
+          <div style={{ fontSize: "0.72rem", color: "var(--muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" }}>My Pigs</div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text)" }}>{profile.name}</div>
+            <div style={{ fontSize: "0.65rem", color: "var(--muted)" }}>{profile.club || profile.city || "Showman"}</div>
+          </div>
+          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem" }}>🤠</div>
+          <button onClick={onLogout} className="btn btn-outline" style={{ fontSize: "0.75rem", padding: "6px 12px" }}>Sign Out</button>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 24px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32, flexWrap: "wrap", gap: 14 }}>
+          <div>
+            <div style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--green)", marginBottom: 6 }}>Welcome back</div>
+            <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "2rem", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: 8 }}>Hey, {profile.name.split(" ")[0]} 👋</h2>
+            <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>{pigs.length} pig{pigs.length !== 1 ? "s" : ""} in your program</p>
+          </div>
+          <button className="btn btn-primary" onClick={() => setShowAddPig(true)} style={{ background: "var(--green)", boxShadow: "0 0 20px rgba(16,185,129,0.3)" }}>+ Add Pig</button>
+        </div>
+
+        {loading ? (
+          <div style={{ textAlign: "center", padding: 60, color: "var(--muted)" }}>Loading...</div>
+        ) : pigs.length === 0 ? (
+          <div style={{ background: "var(--card-bg)", borderRadius: 16, border: "1px solid var(--border)", padding: "60px 40px", textAlign: "center" }}>
+            <div style={{ fontSize: "3rem", marginBottom: 16 }}>🐖</div>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.3rem", fontWeight: 800, marginBottom: 8 }}>No Pigs Yet</div>
+            <div style={{ color: "var(--muted)", fontSize: "0.88rem", marginBottom: 24 }}>Add your first pig to start tracking weights, feed, and show results.</div>
+            <button className="btn btn-primary" onClick={() => setShowAddPig(true)} style={{ background: "var(--green)" }}>+ Add Your First Pig</button>
+          </div>
+        ) : (
+          <div className="card-grid">
+            {pigs.map(pig => (
+              <div className="card" key={pig.id} onClick={() => setSelectedPig(pig)}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                  <div className="card-tag">{pig.tag || "No Tag"}</div>
+                  <span className={`badge ${pig.sex === "Gilt" ? "badge-gilt" : "badge-barrow"}`}>{pig.sex === "Gilt" ? "♀" : "♂"} {pig.sex}</span>
+                </div>
+                <h3 style={{ fontSize: "1.1rem", marginBottom: 4 }}>{pig.name || pig.tag || "Unnamed Pig"}</h3>
+                <div className="card-meta">{pig.breed || "Unknown breed"}</div>
+                <div className="card-meta" style={{ marginTop: 4 }}>{pig.breeder_name ? `From: ${pig.breeder_name}` : "Independent"}</div>
+                <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{pig.color || ""}</span>
+                  <button onClick={e => { e.stopPropagation(); deletePig(pig.id); }} className="btn btn-danger" style={{ fontSize: "0.7rem", padding: "4px 10px" }}>Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {showAddPig && <ShowmanAddPigModal onSave={addPig} onClose={() => setShowAddPig(false)} />}
+    </div>
+  );
+}
+
+// ─── SHOWMAN ADD PIG MODAL ─────────────────────────────────────────────────────
+function ShowmanAddPigModal({ onSave, onClose }) {
+  const [tag, setTag] = useState("");
+  const [name, setName] = useState("");
+  const [sex, setSex] = useState("Barrow");
+  const [breed, setBreed] = useState("");
+  const [color, setColor] = useState("");
+  const [birthDate, setBirthDate] = useState("");
+  const [purchasePrice, setPurchasePrice] = useState("");
+  const [purchaseDate, setPurchaseDate] = useState("");
+  const [breederName, setBreederName] = useState("");
+  const [sire, setSire] = useState("");
+  const [damSire, setDamSire] = useState("");
+  const [notes, setNotes] = useState("");
+
+  const handleSave = () => {
+    if (!sex) { alert("Please select a sex."); return; }
+    onSave({
+      tag: tag || null, name: name || null, sex, breed: breed || null, color: color || null,
+      birth_date: birthDate || null, purchase_price: purchasePrice ? parseFloat(purchasePrice) : 0,
+      purchase_date: purchaseDate || null, breeder_name: breederName || null,
+      sire: sire || null, dam_sire: damSire || null, notes: notes || null,
+    });
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-box">
+        <div className="modal-header">
+          <h3>Add Pig</h3>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div><label style={labelStyle}>Tag / ID</label><input value={tag} onChange={e => setTag(e.target.value)} placeholder="L1-001" style={inputStyle} /></div>
+            <div><label style={labelStyle}>Name (optional)</label><input value={name} onChange={e => setName(e.target.value)} placeholder="Big Red" style={inputStyle} /></div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div><label style={labelStyle}>Sex</label>
+              <select value={sex} onChange={e => setSex(e.target.value)} style={inputStyle}>
+                <option>Barrow</option><option>Gilt</option>
+              </select>
+            </div>
+            <div><label style={labelStyle}>Breed</label><input value={breed} onChange={e => setBreed(e.target.value)} placeholder="Hampshire x Duroc" style={inputStyle} /></div>
+          </div>
+          <div><label style={labelStyle}>Color</label><input value={color} onChange={e => setColor(e.target.value)} placeholder="Black w/ white belt" style={inputStyle} /></div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div><label style={labelStyle}>Birth Date</label><input type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)} style={inputStyle} /></div>
+            <div><label style={labelStyle}>Purchase Price ($)</label><input type="number" value={purchasePrice} onChange={e => setPurchasePrice(e.target.value)} placeholder="850" style={inputStyle} /></div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div><label style={labelStyle}>Purchase Date</label><input type="date" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} style={inputStyle} /></div>
+            <div><label style={labelStyle}>Breeder Name</label><input value={breederName} onChange={e => setBreederName(e.target.value)} placeholder="Ridgeline Show Pigs" style={inputStyle} /></div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div><label style={labelStyle}>Sire</label><input value={sire} onChange={e => setSire(e.target.value)} placeholder="Ironside" style={inputStyle} /></div>
+            <div><label style={labelStyle}>Dam's Sire</label><input value={damSire} onChange={e => setDamSire(e.target.value)} placeholder="Full Package" style={inputStyle} /></div>
+          </div>
+          <div><label style={labelStyle}>Notes</label><textarea value={notes} onChange={e => setNotes(e.target.value)} style={textareaStyle} placeholder="Any additional notes..." /></div>
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+            <button className="btn btn-outline" onClick={onClose}>Cancel</button>
+            <button className="btn btn-primary" onClick={handleSave} style={{ background: "var(--green)" }}>Save Pig</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── SHOWMAN PIG DETAIL ────────────────────────────────────────────────────────
+function ShowmanPigDetail({ pig, profile, onBack, onDelete }) {
+  const [weightLog, setWeightLog] = useState([]);
+  const [feedNotes, setFeedNotes] = useState([]);
+  const [vaccinations, setVaccinations] = useState([]);
+  const [showResults, setShowResults] = useState([]);
+  const [tab, setTab] = useState("weight");
+  const [newWeight, setNewWeight] = useState("");
+  const [newWeightDate, setNewWeightDate] = useState(new Date().toISOString().split("T")[0]);
+  const [newWeightNote, setNewWeightNote] = useState("");
+  const [newFeedDate, setNewFeedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [newFeedNote, setNewFeedNote] = useState("");
+  const [newVaxName, setNewVaxName] = useState("");
+  const [newVaxDate, setNewVaxDate] = useState(new Date().toISOString().split("T")[0]);
+  const [newVaxBy, setNewVaxBy] = useState("");
+  const [newShowName, setNewShowName] = useState("");
+  const [newShowDate, setNewShowDate] = useState("");
+  const [newShowClass, setNewShowClass] = useState("");
+  const [newShowPlacing, setNewShowPlacing] = useState("");
+
+  useEffect(() => {
+    loadAll();
+  }, [pig.id]);
+
+  const loadAll = async () => {
+    const [w, f, v, s] = await Promise.all([
+      supabase.from("showman_weight_log").select("*").eq("pig_id", pig.id).order("date"),
+      supabase.from("showman_feed_notes").select("*").eq("pig_id", pig.id).order("date", { ascending: false }),
+      supabase.from("showman_vaccinations").select("*").eq("pig_id", pig.id).order("date", { ascending: false }),
+      supabase.from("showman_show_results").select("*").eq("pig_id", pig.id).order("date", { ascending: false }),
+    ]);
+    setWeightLog(w.data || []);
+    setFeedNotes(f.data || []);
+    setVaccinations(v.data || []);
+    setShowResults(s.data || []);
+  };
+
+  const addWeight = async () => {
+    if (!newWeight) return;
+    const { data } = await supabase.from("showman_weight_log").insert({ pig_id: pig.id, owner_id: profile.id, date: newWeightDate, weight: parseFloat(newWeight), notes: newWeightNote || null }).select().single();
+    if (data) { setWeightLog(prev => [...prev, data].sort((a,b) => new Date(a.date) - new Date(b.date))); setNewWeight(""); setNewWeightNote(""); }
+  };
+
+  const addFeed = async () => {
+    if (!newFeedNote) return;
+    const { data } = await supabase.from("showman_feed_notes").insert({ pig_id: pig.id, owner_id: profile.id, date: newFeedDate, note: newFeedNote }).select().single();
+    if (data) { setFeedNotes(prev => [data, ...prev]); setNewFeedNote(""); }
+  };
+
+  const addVax = async () => {
+    if (!newVaxName) return;
+    const { data } = await supabase.from("showman_vaccinations").insert({ pig_id: pig.id, owner_id: profile.id, name: newVaxName, date: newVaxDate, given_by: newVaxBy || null }).select().single();
+    if (data) { setVaccinations(prev => [data, ...prev]); setNewVaxName(""); setNewVaxBy(""); }
+  };
+
+  const addShow = async () => {
+    if (!newShowName || !newShowDate) return;
+    const { data } = await supabase.from("showman_show_results").insert({ pig_id: pig.id, owner_id: profile.id, show_name: newShowName, date: newShowDate, class: newShowClass || null, placement: newShowPlacing || null }).select().single();
+    if (data) { setShowResults(prev => [data, ...prev]); setNewShowName(""); setNewShowDate(""); setNewShowClass(""); setNewShowPlacing(""); }
+  };
+
+  const latest = weightLog.length > 0 ? weightLog[weightLog.length - 1] : null;
+  const first = weightLog.length > 0 ? weightLog[0] : null;
+
+  return (
+    <div style={{ minHeight: "100vh", background: "var(--black)" }}>
+      <style>{css}</style>
+      <div style={{ background: "var(--charcoal)", borderBottom: "1px solid var(--border)", padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 60, position: "sticky", top: 0, zIndex: 100 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <button onClick={onBack} style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: "0.82rem", fontFamily: "'Space Grotesk', sans-serif", display: "flex", alignItems: "center", gap: 6, padding: 0, fontWeight: 600 }}>← Back</button>
+          <div style={{ width: 1, height: 18, background: "var(--border)" }} />
+          <div style={{ fontFamily: "'Syne', sans-serif", fontSize: "1rem", fontWeight: 800 }}>{pig.name || pig.tag || "Pig Detail"}</div>
+        </div>
+        <button onClick={() => onDelete(pig.id)} className="btn btn-danger" style={{ fontSize: "0.75rem", padding: "6px 12px" }}>Delete Pig</button>
+      </div>
+
+      <div style={{ maxWidth: 800, margin: "0 auto", padding: "32px 24px" }}>
+        {/* Info card */}
+        <div className="section-card" style={{ marginBottom: 20 }}>
+          <div className="info-grid">
+            <div className="info-item"><label>Tag</label><span>{pig.tag || "—"}</span></div>
+            <div className="info-item"><label>Sex</label><span>{pig.sex}</span></div>
+            <div className="info-item"><label>Breed</label><span>{pig.breed || "—"}</span></div>
+            <div className="info-item"><label>Color</label><span>{pig.color || "—"}</span></div>
+            <div className="info-item"><label>Current Weight</label><span style={{ color: "var(--blue-bright)", fontWeight: 700 }}>{latest ? `${latest.weight} lbs` : "—"}</span></div>
+            <div className="info-item"><label>Purchase Price</label><span>${(pig.purchase_price || 0).toLocaleString()}</span></div>
+            <div className="info-item"><label>Breeder</label><span>{pig.breeder_name || "—"}</span></div>
+            <div className="info-item"><label>Sire × Dam's Sire</label><span>{pig.sire || "—"} × {pig.dam_sire || "—"}</span></div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="tab-bar" style={{ marginBottom: 20 }}>
+          {["weight", "feed", "vaccines", "shows"].map(t => (
+            <button key={t} className={`tab-btn ${tab === t ? "active" : ""}`} onClick={() => setTab(t)}>
+              {t === "weight" ? "⚖️ Weight" : t === "feed" ? "🌽 Feed" : t === "vaccines" ? "💉 Vaccines" : "🏆 Shows"}
+            </button>
+          ))}
+        </div>
+
+        {tab === "weight" && (
+          <div className="section-card">
+            <h4>Weight Log</h4>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 8, marginBottom: 16, alignItems: "end" }}>
+              <div><label style={labelStyle}>Date</label><input type="date" value={newWeightDate} onChange={e => setNewWeightDate(e.target.value)} style={inputStyle} /></div>
+              <div><label style={labelStyle}>Weight (lbs)</label><input type="number" value={newWeight} onChange={e => setNewWeight(e.target.value)} placeholder="125" style={inputStyle} /></div>
+              <div><label style={labelStyle}>Notes</label><input value={newWeightNote} onChange={e => setNewWeightNote(e.target.value)} placeholder="optional" style={inputStyle} /></div>
+              <button className="btn btn-primary" onClick={addWeight} style={{ height: 38, padding: "0 16px" }}>+ Add</button>
+            </div>
+            {weightLog.length === 0 ? <div className="empty">No weight entries yet.</div> : (
+              <table><thead><tr><th>Date</th><th>Weight</th><th>Notes</th></tr></thead>
+                <tbody>{[...weightLog].reverse().map((w, i) => <tr key={i}><td>{w.date}</td><td><strong>{w.weight} lbs</strong></td><td style={{ color: "var(--muted)" }}>{w.notes}</td></tr>)}</tbody>
+              </table>
+            )}
+          </div>
+        )}
+
+        {tab === "feed" && (
+          <div className="section-card">
+            <h4>Feed Notes</h4>
+            <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 8, marginBottom: 16, alignItems: "end" }}>
+              <div><label style={labelStyle}>Date</label><input type="date" value={newFeedDate} onChange={e => setNewFeedDate(e.target.value)} style={inputStyle} /></div>
+              <div><label style={labelStyle}>Note</label><input value={newFeedNote} onChange={e => setNewFeedNote(e.target.value)} placeholder="Purina Honor Show Chow, 3lbs 2x daily" style={inputStyle} /></div>
+              <button className="btn btn-primary" onClick={addFeed} style={{ height: 38, padding: "0 16px" }}>+ Add</button>
+            </div>
+            {feedNotes.length === 0 ? <div className="empty">No feed notes yet.</div> : (
+              <table><thead><tr><th>Date</th><th>Note</th></tr></thead>
+                <tbody>{feedNotes.map((f, i) => <tr key={i}><td>{f.date}</td><td>{f.note}</td></tr>)}</tbody>
+              </table>
+            )}
+          </div>
+        )}
+
+        {tab === "vaccines" && (
+          <div className="section-card">
+            <h4>Vaccinations</h4>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 8, marginBottom: 16, alignItems: "end" }}>
+              <div><label style={labelStyle}>Vaccine</label><input value={newVaxName} onChange={e => setNewVaxName(e.target.value)} placeholder="Iron" style={inputStyle} /></div>
+              <div><label style={labelStyle}>Date</label><input type="date" value={newVaxDate} onChange={e => setNewVaxDate(e.target.value)} style={inputStyle} /></div>
+              <div><label style={labelStyle}>Given By</label><input value={newVaxBy} onChange={e => setNewVaxBy(e.target.value)} placeholder="Breeder" style={inputStyle} /></div>
+              <button className="btn btn-primary" onClick={addVax} style={{ height: 38, padding: "0 16px" }}>+ Add</button>
+            </div>
+            {vaccinations.length === 0 ? <div className="empty">No vaccination records yet.</div> : (
+              <table><thead><tr><th>Vaccine</th><th>Date</th><th>Given By</th></tr></thead>
+                <tbody>{vaccinations.map((v, i) => <tr key={i}><td><strong>{v.name}</strong></td><td>{v.date}</td><td style={{ color: "var(--muted)" }}>{v.given_by}</td></tr>)}</tbody>
+              </table>
+            )}
+          </div>
+        )}
+
+        {tab === "shows" && (
+          <div className="section-card">
+            <h4>Show Results</h4>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr 1fr auto", gap: 8, marginBottom: 16, alignItems: "end" }}>
+              <div><label style={labelStyle}>Show Name</label><input value={newShowName} onChange={e => setNewShowName(e.target.value)} placeholder="County Fair" style={inputStyle} /></div>
+              <div><label style={labelStyle}>Date</label><input type="date" value={newShowDate} onChange={e => setNewShowDate(e.target.value)} style={inputStyle} /></div>
+              <div><label style={labelStyle}>Class</label><input value={newShowClass} onChange={e => setNewShowClass(e.target.value)} placeholder="Market Barrow HW" style={inputStyle} /></div>
+              <div><label style={labelStyle}>Placing</label><input value={newShowPlacing} onChange={e => setNewShowPlacing(e.target.value)} placeholder="1st" style={inputStyle} /></div>
+              <button className="btn btn-primary" onClick={addShow} style={{ height: 38, padding: "0 16px" }}>+ Add</button>
+            </div>
+            {showResults.length === 0 ? <div className="empty">No show results yet.</div> : (
+              <table><thead><tr><th>Show</th><th>Date</th><th>Class</th><th>Placing</th></tr></thead>
+                <tbody>{showResults.map((s, i) => <tr key={i}><td><strong>{s.show_name}</strong></td><td>{s.date}</td><td style={{ color: "var(--muted)" }}>{s.class}</td><td style={{ color: "var(--amber)", fontWeight: 700 }}>{s.placement}</td></tr>)}</tbody>
+              </table>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function CustomerPortal({ customer, data, onUpdatePig, onLogout }) {
   const myPigs = (customer.pigIds || []).map(id => data.pigs.find(p => p.id === id)).filter(Boolean);
 
@@ -3174,8 +3628,86 @@ function BreederLogin({ onLogin, onBack }) {
     </div>
   );
 }
+// ─── BREEDER SIGNUP ───────────────────────────────────────────────────────────
+function BreederSignup({ onSignup, onBack }) {
+  const [farmName, setFarmName] = useState("");
+  const [ownerName, setOwnerName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSignup = async () => {
+    setError("");
+    if (!farmName.trim()) { setError("Please enter your farm name."); return; }
+    if (!ownerName.trim()) { setError("Please enter your name."); return; }
+    if (!email.trim()) { setError("Please enter your email."); return; }
+    if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
+    if (password !== confirm) { setError("Passwords do not match."); return; }
+    setLoading(true);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { farm_name: farmName, full_name: ownerName } }
+    });
+    setLoading(false);
+    if (error) {
+      setError(error.message);
+    } else {
+      onSignup();
+    }
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "var(--black)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <style>{css}</style>
+      <div style={{ width: "100%", maxWidth: 420 }}>
+        <button onClick={onBack} style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: "0.82rem", fontFamily: "'Space Grotesk', sans-serif", marginBottom: 28, display: "flex", alignItems: "center", gap: 6, padding: 0, fontWeight: 600 }}>← Back</button>
+        <div style={{ background: "var(--card-bg)", borderRadius: 20, border: "1px solid var(--border)", padding: "36px 32px", boxShadow: "0 24px 60px rgba(0,0,0,0.5)" }}>
+          <div style={{ textAlign: "center", marginBottom: 28 }}>
+            <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>🐷</div>
+            <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.6rem", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 8 }}>Create Your Account</h2>
+            <p style={{ color: "var(--muted)", fontSize: "0.84rem", lineHeight: 1.6 }}>Start your 14-day free trial. No credit card required.</p>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div>
+              <label style={labelStyle}>Farm Name</label>
+              <input type="text" value={farmName} onChange={e => setFarmName(e.target.value)} placeholder="e.g. Ridgeline Show Pigs" style={inputStyle} autoFocus />
+            </div>
+            <div>
+              <label style={labelStyle}>Your Name</label>
+              <input type="text" value={ownerName} onChange={e => setOwnerName(e.target.value)} placeholder="e.g. Jake Harmon" style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>Email</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>Password</label>
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>Confirm Password</label>
+              <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSignup()} placeholder="••••••••" style={inputStyle} />
+            </div>
+            {error && (
+              <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 8, padding: "10px 14px", fontSize: "0.8rem", color: "var(--red)" }}>
+                {error}
+              </div>
+            )}
+            <button className="btn btn-primary" onClick={handleSignup} disabled={loading} style={{ width: "100%", justifyContent: "center", marginTop: 4, opacity: loading ? 0.7 : 1, fontSize: "0.9rem", padding: "12px" }}>
+              {loading ? "Creating account..." : "Create Account →"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── LANDING PAGE ─────────────────────────────────────────────────────────────
-function LandingPage({ onSelectBreeder, onSelectCustomer, farmName }) {
+function LandingPage({ onSelectBreeder, onSelectCustomer, onSignup, onSignupShowman, farmName }) {
   return (
     <div style={{ minHeight: "100vh", background: "var(--black)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", position: "relative", overflow: "hidden" }}>
       <style>{css}</style>
@@ -3196,37 +3728,51 @@ function LandingPage({ onSelectBreeder, onSelectCustomer, farmName }) {
 
       {/* Role selection */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, width: "100%", maxWidth: 640, position: "relative" }}>
-        {/* Breeder card */}
-        <button onClick={onSelectBreeder} style={{ background: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: 20, padding: "36px 28px", cursor: "pointer", fontFamily: "'Space Grotesk', sans-serif", textAlign: "left", transition: "all 0.2s", position: "relative", overflow: "hidden" }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(59,130,246,0.6)"; e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 20px 48px rgba(29,78,216,0.25)"; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
-          <div style={{ position: "absolute", top: 0, right: 0, width: 140, height: 140, background: "radial-gradient(circle, rgba(29,78,216,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
-          <div style={{ fontSize: "2.8rem", marginBottom: 16 }}>🐷</div>
-          <div style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--blue-bright)", marginBottom: 8 }}>For the Breeder</div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.4rem", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.02em", marginBottom: 10 }}>Breeder Dashboard</div>
-          <p style={{ fontSize: "0.83rem", color: "var(--muted)", lineHeight: 1.6, marginBottom: 20 }}>
-            Full farm management — sow herd, breeding cycles, litters, financials, and customer management.
-          </p>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--blue-bright)", fontSize: "0.82rem", fontWeight: 700 }}>
-            Sign In <span style={{ fontSize: "1rem" }}>→</span>
-          </div>
-        </button>
+        {/* Breeder column */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <button onClick={onSelectBreeder} style={{ background: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: 20, padding: "36px 28px", cursor: "pointer", fontFamily: "'Space Grotesk', sans-serif", textAlign: "left", transition: "all 0.2s", position: "relative", overflow: "hidden" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(59,130,246,0.6)"; e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 20px 48px rgba(29,78,216,0.25)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
+            <div style={{ position: "absolute", top: 0, right: 0, width: 140, height: 140, background: "radial-gradient(circle, rgba(29,78,216,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
+            <div style={{ fontSize: "2.8rem", marginBottom: 16 }}>🐷</div>
+            <div style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--blue-bright)", marginBottom: 8 }}>For the Breeder</div>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.4rem", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.02em", marginBottom: 10 }}>Breeder Dashboard</div>
+            <p style={{ fontSize: "0.83rem", color: "var(--muted)", lineHeight: 1.6, marginBottom: 20 }}>
+              Full farm management — sow herd, breeding cycles, litters, financials, and customer management.
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--blue-bright)", fontSize: "0.82rem", fontWeight: 700 }}>
+              Sign In <span style={{ fontSize: "1rem" }}>→</span>
+            </div>
+          </button>
+          <button onClick={onSignup} style={{ background: "transparent", border: "1px dashed var(--border)", borderRadius: 20, padding: "16px 28px", cursor: "pointer", fontFamily: "'Space Grotesk', sans-serif", textAlign: "center", transition: "all 0.2s", color: "var(--muted)", fontSize: "0.84rem", fontWeight: 600 }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--blue-bright)"; e.currentTarget.style.color = "var(--blue-bright)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--muted)"; }}>
+            New breeder? <strong style={{ color: "var(--blue-bright)" }}>Create a free account →</strong>
+          </button>
+        </div>
 
-        {/* Customer card */}
-        <button onClick={onSelectCustomer} style={{ background: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: 20, padding: "36px 28px", cursor: "pointer", fontFamily: "'Space Grotesk', sans-serif", textAlign: "left", transition: "all 0.2s", position: "relative", overflow: "hidden" }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(16,185,129,0.5)"; e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 20px 48px rgba(16,185,129,0.15)"; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
-          <div style={{ position: "absolute", top: 0, right: 0, width: 140, height: 140, background: "radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
-          <div style={{ fontSize: "2.8rem", marginBottom: 16 }}>🤠</div>
-          <div style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--green)", marginBottom: 8 }}>For the Showman</div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.4rem", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.02em", marginBottom: 10 }}>Customer Portal</div>
-          <p style={{ fontSize: "0.83rem", color: "var(--muted)", lineHeight: 1.6, marginBottom: 20 }}>
-            View your pig's weight log, feed program, vaccinations, and show results — nothing more, nothing less.
-          </p>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--green)", fontSize: "0.82rem", fontWeight: 700 }}>
-            Sign In <span style={{ fontSize: "1rem" }}>→</span>
-          </div>
-        </button>
+        {/* Showman column */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <button onClick={onSelectCustomer} style={{ background: "var(--card-bg)", border: "1px solid var(--border)", borderRadius: 20, padding: "36px 28px", cursor: "pointer", fontFamily: "'Space Grotesk', sans-serif", textAlign: "left", transition: "all 0.2s", position: "relative", overflow: "hidden" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(16,185,129,0.5)"; e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 20px 48px rgba(16,185,129,0.15)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
+            <div style={{ position: "absolute", top: 0, right: 0, width: 140, height: 140, background: "radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
+            <div style={{ fontSize: "2.8rem", marginBottom: 16 }}>🤠</div>
+            <div style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--green)", marginBottom: 8 }}>For the Showman</div>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.4rem", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.02em", marginBottom: 10 }}>Showman Portal</div>
+            <p style={{ fontSize: "0.83rem", color: "var(--muted)", lineHeight: 1.6, marginBottom: 20 }}>
+              Track your pigs, log weights, record feed programs, vaccinations, and show results.
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--green)", fontSize: "0.82rem", fontWeight: 700 }}>
+              Sign In <span style={{ fontSize: "1rem" }}>→</span>
+            </div>
+          </button>
+          <button onClick={onSignupShowman} style={{ background: "transparent", border: "1px dashed var(--border)", borderRadius: 20, padding: "16px 28px", cursor: "pointer", fontFamily: "'Space Grotesk', sans-serif", textAlign: "center", transition: "all 0.2s", color: "var(--muted)", fontSize: "0.84rem", fontWeight: 600 }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--green)"; e.currentTarget.style.color = "var(--green)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--muted)"; }}>
+            New showman? <strong style={{ color: "var(--green)" }}>Create a free account →</strong>
+          </button>
+        </div>
       </div>
 
       <div style={{ marginTop: 36, fontSize: "0.72rem", color: "var(--subtle)", textAlign: "center" }}>
@@ -3237,10 +3783,11 @@ function LandingPage({ onSelectBreeder, onSelectCustomer, farmName }) {
 }
 
 // ─── APP SHELL ─────────────────────────────────────────────────────────────────
-// Portal state: "landing" | "breeder-login" | "breeder" | "customer-login" | "customer"
+// Portal state: "landing" | "breeder-login" | "breeder-signup" | "breeder" | "showman-login" | "showman-signup" | "showman" | "customer-login" | "customer"
 export default function App() {
   const [portal, setPortal] = useState("landing");
   const [loggedInCustomer, setLoggedInCustomer] = useState(null);
+  const [loggedInShowman, setLoggedInShowman] = useState(null);
 
 const [data, setData] = useState(initialData)
 const [loading, setLoading] = useState(false)
@@ -3470,10 +4017,22 @@ const saveShowman = async (sm) => {
  if (loading) return <div style={{ color: 'white', padding: 40, fontSize: '1.2rem' }}>Loading...</div>
 if (!data && portal === 'breeder') return <div style={{ color: 'white', padding: 40 }}>Could not load farm data.</div>
   if (portal === "landing") {
-    return <LandingPage farmName={data.farm.name} onSelectBreeder={() => setPortal("breeder-login")} onSelectCustomer={() => setPortal("customer-login")} />;
+    return <LandingPage farmName={data.farm.name} onSelectBreeder={() => setPortal("breeder-login")} onSelectCustomer={() => setPortal("showman-login")} onSignup={() => setPortal("breeder-signup")} onSignupShowman={() => setPortal("showman-signup")} />;
   }
   if (portal === "breeder-login") {
     return <BreederLogin onLogin={() => setPortal("breeder")} onBack={() => setPortal("landing")} />;
+  }
+  if (portal === "breeder-signup") {
+    return <BreederSignup onSignup={() => setPortal("breeder-login")} onBack={() => setPortal("landing")} />;
+  }
+  if (portal === "showman-login") {
+    return <ShowmanLogin onLogin={(profile) => { setLoggedInShowman(profile); setPortal("showman"); }} onBack={() => setPortal("landing")} onSignup={() => setPortal("showman-signup")} />;
+  }
+  if (portal === "showman-signup") {
+    return <ShowmanSignup onSignup={() => setPortal("showman-login")} onBack={() => setPortal("landing")} />;
+  }
+  if (portal === "showman") {
+    return <ShowmanDashboard profile={loggedInShowman} onLogout={() => { setLoggedInShowman(null); setPortal("landing"); supabase.auth.signOut(); }} />;
   }
   if (portal === "customer-login") {
     return <CustomerLogin data={data} onLogin={(customer) => { setLoggedInCustomer(customer); setPortal("customer"); }} onBack={() => setPortal("landing")} />;
