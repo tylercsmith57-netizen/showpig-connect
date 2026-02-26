@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { supabase } from './supabaseClient';
+import { loadFarmData } from './db'
 
 // ─── MOCK DATA ──────────────────────────────────────────────────────────────
 const initialData = {
@@ -3241,7 +3242,17 @@ export default function App() {
   const [portal, setPortal] = useState("landing");
   const [loggedInCustomer, setLoggedInCustomer] = useState(null);
 
-  const [data, setData] = useState(initialData);
+  const [data, setData] = useState(null)
+const [loading, setLoading] = useState(true)
+
+useEffect(() => {
+  loadFarmData().then(farmData => {
+    if (farmData) setData(farmData)
+    setLoading(false)
+  })
+}, [])
+
+
   const [view, setView] = useState({ page: "dashboard" });
 
   // Modal state
@@ -3371,6 +3382,8 @@ export default function App() {
   };
 
   // ── Portal routing ───────────────────────────────────────────────────────
+ if (loading) return <div style={{ color: 'white', padding: 40, fontSize: '1.2rem' }}>Loading...</div>
+if (!data) return <div style={{ color: 'white', padding: 40 }}>Could not load farm data.</div>
   if (portal === "landing") {
     return <LandingPage farmName={data.farm.name} onSelectBreeder={() => setPortal("breeder-login")} onSelectCustomer={() => setPortal("customer-login")} />;
   }
