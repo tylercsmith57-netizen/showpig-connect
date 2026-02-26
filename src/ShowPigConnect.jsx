@@ -3242,16 +3242,21 @@ export default function App() {
   const [portal, setPortal] = useState("landing");
   const [loggedInCustomer, setLoggedInCustomer] = useState(null);
 
-  const [data, setData] = useState(null)
-const [loading, setLoading] = useState(true)
+const [data, setData] = useState(initialData)
+const [loading, setLoading] = useState(false)
 
 useEffect(() => {
+  if (portal !== 'breeder') return
+  setLoading(true)
   loadFarmData().then(farmData => {
-    if (farmData) setData(farmData)
+    if (farmData) {
+      setData(farmData)
+    } else {
+      setData({ farm: { name: '', owner: '', location: '' }, sows: [], boars: [], litters: [], pigs: [], showmen: [] })
+    }
     setLoading(false)
   })
-}, [])
-
+}, [portal])
 
   const [view, setView] = useState({ page: "dashboard" });
 
@@ -3383,7 +3388,7 @@ useEffect(() => {
 
   // ── Portal routing ───────────────────────────────────────────────────────
  if (loading) return <div style={{ color: 'white', padding: 40, fontSize: '1.2rem' }}>Loading...</div>
-if (!data) return <div style={{ color: 'white', padding: 40 }}>Could not load farm data.</div>
+if (!data && portal === 'breeder') return <div style={{ color: 'white', padding: 40 }}>Could not load farm data.</div>
   if (portal === "landing") {
     return <LandingPage farmName={data.farm.name} onSelectBreeder={() => setPortal("breeder-login")} onSelectCustomer={() => setPortal("customer-login")} />;
   }
