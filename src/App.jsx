@@ -4,7 +4,7 @@ import { loadFarmData } from './db';
 import { initialData } from './lib/constants';
 import { css } from './lib/styles';
 import { IconDashboard, IconSow, IconBoar, IconCalendar, IconPigs, IconCustomers, IconReports } from './components/icons';
-import { RecordSaleModal } from "./components/breeder/Modals/RecordSaleModal";
+import { RecordSaleModal } from './components/breeder/Modals/RecordSaleModal';
 
 // Breeder views
 import { Dashboard } from './components/breeder/Dashboard';
