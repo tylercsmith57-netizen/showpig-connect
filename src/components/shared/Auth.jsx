@@ -113,12 +113,76 @@ function CustomerLogin({ data, onLogin, onBack }) {
   );
 }
 
+//  PASSWORD RESET MODAL 
+function PasswordResetModal({ onClose }) {
+  const [email, setEmail] = useState("");
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleReset = async () => {
+    setError("");
+    if (!email.trim()) { setError("Please enter your email address."); return; }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + "/?reset=true",
+    });
+    setLoading(false);
+    if (error) { setError(error.message); } else { setSent(true); }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal-box" style={{ maxWidth: 400 }}>
+        <div className="modal-header">
+          <h3>Reset Password</h3>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          {sent ? (
+            <div style={{ textAlign: "center", padding: "12px 0" }}>
+              <div style={{ fontSize: "2rem", marginBottom: 12 }}>📬</div>
+              <div style={{ fontWeight: 700, marginBottom: 8 }}>Check your email</div>
+              <div style={{ fontSize: "0.84rem", color: "var(--muted)", lineHeight: 1.6 }}>
+                We sent a password reset link to <strong style={{ color: "var(--text)" }}>{email}</strong>. Click the link in the email to set a new password.
+              </div>
+              <button className="btn btn-outline" onClick={onClose} style={{ marginTop: 20 }}>Close</button>
+            </div>
+          ) : (
+            <>
+              <p style={{ fontSize: "0.84rem", color: "var(--muted)", marginBottom: 16, lineHeight: 1.6 }}>
+                Enter your account email and we'll send you a link to reset your password.
+              </p>
+              <div>
+                <label style={labelStyle}>Email Address</label>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && handleReset()} placeholder="you@example.com" style={inputStyle} autoFocus />
+              </div>
+              {error && (
+                <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 8, padding: "10px 14px", fontSize: "0.8rem", color: "var(--red)" }}>
+                  {error}
+                </div>
+              )}
+              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                <button className="btn btn-outline" onClick={onClose}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleReset} disabled={loading} style={{ opacity: loading ? 0.7 : 1 }}>
+                  {loading ? "Sending..." : "Send Reset Link"}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 //  BREEDER LOGIN 
 function BreederLogin({ onLogin, onBack }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showReset, setShowReset] = useState(false);
 
   const handleLogin = async () => {
     setError("");
@@ -141,7 +205,6 @@ function BreederLogin({ onLogin, onBack }) {
         <button onClick={onBack} style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: "0.82rem", fontFamily: "'Space Grotesk', sans-serif", marginBottom: 28, display: "flex", alignItems: "center", gap: 6, padding: 0, fontWeight: 600 }}>← Back</button>
         <div style={{ background: "var(--card-bg)", borderRadius: 20, border: "1px solid var(--border)", padding: "36px 32px", boxShadow: "0 24px 60px rgba(0,0,0,0.5)" }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
-            
             <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.6rem", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 8 }}>Breeder Sign In</h2>
             <p style={{ color: "var(--muted)", fontSize: "0.84rem", lineHeight: 1.6 }}>
               Access your full farm management dashboard.
@@ -164,13 +227,16 @@ function BreederLogin({ onLogin, onBack }) {
             <button className="btn btn-primary" onClick={handleLogin} disabled={loading} style={{ width: "100%", justifyContent: "center", marginTop: 4, opacity: loading ? 0.7 : 1, fontSize: "0.9rem", padding: "12px" }}>
               {loading ? "Signing in..." : "Enter Dashboard →"}
             </button>
+            <button onClick={() => setShowReset(true)} style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: "0.78rem", fontFamily: "'Space Grotesk', sans-serif", textAlign: "center", padding: "2px 0", textDecoration: "underline" }}>
+              Forgot password?
+            </button>
           </div>
         </div>
       </div>
+      {showReset && <PasswordResetModal onClose={() => setShowReset(false)} />}
     </div>
   );
 }
-//  BREEDER SIGNUP 
 function BreederSignup({ onSignup, onBack }) {
   const [farmName, setFarmName] = useState("");
   const [ownerName, setOwnerName] = useState("");
@@ -323,7 +389,70 @@ function LandingPage({ onSelectBreeder, onSelectCustomer, onSignup, onSignupShow
   );
 }
 
+
+function ResetPasswordScreen({ onDone }) {
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const handleSave = async () => {
+    setError("");
+    if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
+    if (password !== confirm) { setError("Passwords do not match."); return; }
+    setLoading(true);
+    const { error } = await supabase.auth.updateUser({ password });
+    setLoading(false);
+    if (error) { setError(error.message); return; }
+    setDone(true);
+    setTimeout(() => onDone(), 2000);
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "var(--black)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <style>{css}</style>
+      <div style={{ width: "100%", maxWidth: 400 }}>
+        <div style={{ background: "var(--card-bg)", borderRadius: 20, border: "1px solid var(--border)", padding: "36px 32px", boxShadow: "0 24px 60px rgba(0,0,0,0.5)" }}>
+          {done ? (
+            <div style={{ textAlign: "center", padding: "12px 0" }}>
+              <div style={{ fontSize: "2rem", marginBottom: 12 }}>✓</div>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.4rem", fontWeight: 800, marginBottom: 8 }}>Password Updated</div>
+              <div style={{ color: "var(--muted)", fontSize: "0.84rem" }}>Redirecting you to sign in...</div>
+            </div>
+          ) : (
+            <>
+              <div style={{ textAlign: "center", marginBottom: 28 }}>
+                <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.6rem", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 8 }}>Set New Password</h2>
+                <p style={{ color: "var(--muted)", fontSize: "0.84rem", lineHeight: 1.6 }}>Choose a new password for your account.</p>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <div>
+                  <label style={labelStyle}>New Password</label>
+                  <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" style={inputStyle} autoFocus />
+                </div>
+                <div>
+                  <label style={labelStyle}>Confirm Password</label>
+                  <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSave()} placeholder="••••••••" style={inputStyle} />
+                </div>
+                {error && (
+                  <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 8, padding: "10px 14px", fontSize: "0.8rem", color: "var(--red)" }}>
+                    {error}
+                  </div>
+                )}
+                <button className="btn btn-primary" onClick={handleSave} disabled={loading} style={{ width: "100%", justifyContent: "center", fontSize: "0.9rem", padding: "12px", opacity: loading ? 0.7 : 1 }}>
+                  {loading ? "Saving..." : "Save New Password →"}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 //  APP SHELL 
 // Portal state: "landing" | "breeder-login" | "breeder-signup" | "breeder" | "showman-login" | "showman-signup" | "showman" | "customer-login" | "customer"
 
-export { CustomerLogin, BreederLogin, BreederSignup, LandingPage, CustomerPortal };
+export { CustomerLogin, BreederLogin, BreederSignup, LandingPage, CustomerPortal, ResetPasswordScreen };

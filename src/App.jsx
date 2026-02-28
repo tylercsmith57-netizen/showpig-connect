@@ -5,6 +5,7 @@ import { initialData } from './lib/constants';
 import { css } from './lib/styles';
 import { IconDashboard, IconSow, IconBoar, IconCalendar, IconPigs, IconCustomers, IconReports } from './components/icons';
 import { RecordSaleModal } from './components/breeder/modals/RecordSaleModal';
+import { ResetPasswordScreen } from './components/shared/Auth';
 
 // Breeder views
 import { Dashboard } from './components/breeder/Dashboard';
@@ -49,6 +50,23 @@ useEffect(() => {
   })
 }, [portal])
   const [view, setView] = useState({ page: "dashboard" });
+
+  // Detect password reset link
+useEffect(() => {
+  supabase.auth.onAuthStateChange((event) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      setPortal('reset-password');
+    }
+  });
+}, []);
+
+useEffect(() => {
+  const hash = window.location.hash;
+  if (hash && hash.includes('type=recovery')) {
+    setPortal('reset-password');
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+}, []);
 
   // Modal state
   const [showExpenseModal, setShowExpenseModal] = useState(false);
@@ -357,6 +375,8 @@ const unassignCustomer = async (customerId, pigId) => {
   };
 
   //  Portal routing 
+
+if (portal === "reset-password") { return <ResetPasswordScreen onDone={() => setPortal("breeder-login")} />; }
  if (loading) return <div style={{ color: 'white', padding: 40, fontSize: '1.2rem' }}>Loading...</div>
 if (!data && portal === 'breeder') return <div style={{ color: 'white', padding: 40 }}>Could not load farm data.</div>
   if (portal === "landing") {
