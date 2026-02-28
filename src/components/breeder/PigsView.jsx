@@ -185,9 +185,10 @@ function RetainAnimalModal({ pig, data, onRetain, onClose }) {
   );
 }
 
-function PigDetail({ data, id, setView, onAssignCustomer, onUnassignCustomer, onRetainAnimal }) {
+function PigDetail({ data, id, setView, onAssignCustomer, onUnassignCustomer, onRetainAnimal, onEditPig }) {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showRetainModal, setShowRetainModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const pig = data.pigs.find(p => p.id === id);
   if (!pig) return <div className="empty">Pig not found.</div>;
   const litter = data.litters.find(l => l.id === pig.litterId);
@@ -209,6 +210,9 @@ function PigDetail({ data, id, setView, onAssignCustomer, onUnassignCustomer, on
           <span className={`badge ${pig.sold ? "badge-sold" : "badge-available"}`} style={{ fontSize: "0.85rem", padding: "6px 14px" }}>
             {pig.sold ? `Sold – ${pig.showmanName}` : " Available"}
           </span>
+          <button className="btn btn-outline" onClick={() => setShowEditModal(true)} style={{ fontSize: "0.8rem", padding: "7px 14px" }}>
+            Edit Pig
+          </button>
           {canRetain && (
             <button className="btn btn-outline" onClick={() => setShowRetainModal(true)} style={{ fontSize: "0.8rem", padding: "7px 14px", borderColor: pig.sex === "Gilt" ? "var(--green)" : "var(--blue-bright)", color: pig.sex === "Gilt" ? "var(--green)" : "var(--blue-bright)" }}>
               {pig.sex === "Gilt" ? "Retain as Sow" : "Retain as Boar"}
@@ -310,10 +314,90 @@ function PigDetail({ data, id, setView, onAssignCustomer, onUnassignCustomer, on
           onClose={() => setShowRetainModal(false)}
         />
       )}
+      {showEditModal && (
+        <EditPigModal
+          pig={pig}
+          onSave={async (updates) => {
+            await onEditPig && onEditPig(pig.id, updates);
+            setShowEditModal(false);
+          }}
+          onClose={() => setShowEditModal(false)}
+        />
+      )}
     </div>
   );
 }
 
 //  BREEDING CALENDAR 
+
+
+function EditPigModal({ pig, onSave, onClose }) {
+  const [tag, setTag] = useState(pig.tag || "");
+  const [sex, setSex] = useState(pig.sex || "Barrow");
+  const [color, setColor] = useState(pig.color || "");
+  const [birthWeight, setBirthWeight] = useState(pig.birthWeight || "");
+  const [askingPrice, setAskingPrice] = useState(pig.askingPrice ?? pig.purchasePrice ?? "");
+  const [showGoal, setShowGoal] = useState(pig.showGoal || "");
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!tag.trim()) return;
+    setSaving(true);
+    await onSave({ tag, sex, color, birthWeight: parseFloat(birthWeight) || null, askingPrice: parseFloat(askingPrice) || 0, purchasePrice: parseFloat(askingPrice) || 0, showGoal });
+    setSaving(false);
+  };
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal-box" style={{ maxWidth: 480 }}>
+        <div className="modal-header">
+          <h3>Edit Pig</h3>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div>
+              <label style={labelStyle}>Tag / ID</label>
+              <input type="text" value={tag} onChange={e => setTag(e.target.value)} style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>Sex</label>
+              <select value={sex} onChange={e => setSex(e.target.value)} style={inputStyle}>
+                <option>Barrow</option>
+                <option>Gilt</option>
+                <option>Boar</option>
+                <option>Unknown</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label style={labelStyle}>Color / Markings</label>
+            <input type="text" value={color} onChange={e => setColor(e.target.value)} placeholder="e.g. Black with white belt" style={inputStyle} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div>
+              <label style={labelStyle}>Birth Weight (lbs)</label>
+              <input type="number" value={birthWeight} onChange={e => setBirthWeight(e.target.value)} placeholder="e.g. 3.2" style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>Asking Price ($)</label>
+              <input type="number" value={askingPrice} onChange={e => setAskingPrice(e.target.value)} placeholder="e.g. 500" style={inputStyle} />
+            </div>
+          </div>
+          <div>
+            <label style={labelStyle}>Show Goal</label>
+            <input type="text" value={showGoal} onChange={e => setShowGoal(e.target.value)} placeholder="e.g. State Fair Grand Champion" style={inputStyle} />
+          </div>
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+            <button className="btn btn-outline" onClick={onClose}>Cancel</button>
+            <button className="btn btn-primary" onClick={handleSave} disabled={!tag.trim() || saving} style={{ opacity: (!tag.trim() || saving) ? 0.5 : 1 }}>
+              {saving ? "Saving..." : "Save Changes"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export { PigsView, PigDetail, AssignCustomerModal };

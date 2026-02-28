@@ -256,9 +256,9 @@ function ShowmanDashboard({ profile, onLogout }) {
           <div style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.1rem", fontWeight: 800, letterSpacing: "-0.02em", background: "linear-gradient(135deg, #fff 0%, var(--green) 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>ShowPig Connect</div>
           <div style={{ width: 1, height: 18, background: "var(--border)" }} />
           <div style={{ display: "flex", gap: 4 }}>
-            {["pigs", "tasks"].map(t => (
+            {["pigs", "tasks", "feed"].map(t => (
               <button key={t} onClick={() => setDashTab(t)} style={{ background: dashTab === t ? "rgba(16,185,129,0.15)" : "none", border: "none", color: dashTab === t ? "var(--green)" : "var(--muted)", cursor: "pointer", fontSize: "0.72rem", fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", padding: "4px 10px", borderRadius: 6 }}>
-                {t === "pigs" ? <><IconMyPigs /><span>My Pigs</span></> : <><IconTasks /><span>Tasks</span></>}
+                {t === "pigs" ? <><IconMyPigs /><span>My Pigs</span></> : t === "tasks" ? <><IconTasks /><span>Tasks</span></> : <span>Feed Calculator</span>}
               </button>
             ))}
           </div>
@@ -298,14 +298,25 @@ function ShowmanDashboard({ profile, onLogout }) {
               <div className="card" key={pig.id} onClick={() => setSelectedPig(pig)}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                   <div className="card-tag">{pig.tag || "No Tag"}</div>
-                  <span className={`badge ${pig.sex === "Gilt" ? "badge-gilt" : "badge-barrow"}`}>{pig.sex === "Gilt" ? "" : ""} {pig.sex}</span>
+                  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    {pig.from_breeder && (
+                      <span style={{ fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--blue-bright)", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.25)", borderRadius: 6, padding: "2px 6px" }}>
+                        From Breeder
+                      </span>
+                    )}
+                    <span className={`badge ${pig.sex === "Gilt" ? "badge-gilt" : "badge-barrow"}`}>{pig.sex}</span>
+                  </div>
                 </div>
                 <h3 style={{ fontSize: "1.1rem", marginBottom: 4 }}>{pig.name || pig.tag || "Unnamed Pig"}</h3>
                 <div className="card-meta">{pig.breed || "Unknown breed"}</div>
-                <div className="card-meta" style={{ marginTop: 4 }}>{pig.breeder_name ? `From: ${pig.breeder_name}` : "Independent"}</div>
+                <div className="card-meta" style={{ marginTop: 4 }}>
+                  {pig.from_breeder ? `From: ${pig.farm_name || pig.breeder_name || "Breeder"}` : "Self-added"}
+                </div>
                 <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{pig.color || ""}</span>
-                  <button onClick={e => { e.stopPropagation(); deletePig(pig.id); }} className="btn btn-danger" style={{ fontSize: "0.7rem", padding: "4px 10px" }}>Delete</button>
+                  {!pig.from_breeder && (
+                    <button onClick={e => { e.stopPropagation(); deletePig(pig.id); }} className="btn btn-danger" style={{ fontSize: "0.7rem", padding: "4px 10px" }}>Delete</button>
+                  )}
                 </div>
               </div>
             ))}
@@ -314,6 +325,7 @@ function ShowmanDashboard({ profile, onLogout }) {
       </div>
 
       {dashTab === "tasks" && <ShowmanTasks profile={profile} pigs={pigs} />}
+      {dashTab === "feed" && <FeedCalculator profile={profile} pigs={pigs} />}
       {showAddPig && <ShowmanAddPigModal onSave={addPig} onClose={() => setShowAddPig(false)} />}
     </div>
   );
@@ -400,6 +412,8 @@ function ShowmanPigDetail({ pig, profile, onBack, onDelete }) {
   const [newWeightNote, setNewWeightNote] = useState("");
   const [newFeedDate, setNewFeedDate] = useState(new Date().toISOString().split("T")[0]);
   const [newFeedNote, setNewFeedNote] = useState("");
+  const [savedRations, setSavedRations] = useState([]);
+  const [showRationPicker, setShowRationPicker] = useState(false);
   const [newVaxName, setNewVaxName] = useState("");
   const [newVaxDate, setNewVaxDate] = useState(new Date().toISOString().split("T")[0]);
   const [newVaxBy, setNewVaxBy] = useState("");
@@ -413,16 +427,18 @@ function ShowmanPigDetail({ pig, profile, onBack, onDelete }) {
   }, [pig.id]);
 
   const loadAll = async () => {
-    const [w, f, v, s] = await Promise.all([
+    const [w, f, v, s, r] = await Promise.all([
       supabase.from("showman_weight_log").select("*").eq("pig_id", pig.id).order("date"),
       supabase.from("showman_feed_notes").select("*").eq("pig_id", pig.id).order("date", { ascending: false }),
       supabase.from("showman_vaccinations").select("*").eq("pig_id", pig.id).order("date", { ascending: false }),
       supabase.from("showman_show_results").select("*").eq("pig_id", pig.id).order("date", { ascending: false }),
+      supabase.from("feed_rations").select("*").eq("owner_id", profile.id).order("created_at", { ascending: false }),
     ]);
     setWeightLog(w.data || []);
     setFeedNotes(f.data || []);
     setVaccinations(v.data || []);
     setShowResults(s.data || []);
+    setSavedRations(r.data || []);
   };
 
   const addWeight = async () => {
@@ -506,17 +522,95 @@ function ShowmanPigDetail({ pig, profile, onBack, onDelete }) {
         )}
 
         {tab === "feed" && (
-          <div className="section-card">
-            <h4>Feed Notes</h4>
-            <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 8, marginBottom: 16, alignItems: "end" }}>
-              <div><label style={labelStyle}>Date</label><input type="date" value={newFeedDate} onChange={e => setNewFeedDate(e.target.value)} style={inputStyle} /></div>
-              <div><label style={labelStyle}>Note</label><input value={newFeedNote} onChange={e => setNewFeedNote(e.target.value)} placeholder="Purina Honor Show Chow, 3lbs 2x daily" style={inputStyle} /></div>
-              <button className="btn btn-primary" onClick={addFeed} style={{ height: 38, padding: "0 16px" }}>+ Add</button>
+          <div>
+            {/* Log a ration or note */}
+            <div className="section-card">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                <h4 style={{ margin: 0 }}>Log Feed Entry</h4>
+                <button
+                  className="btn btn-outline"
+                  onClick={() => setShowRationPicker(true)}
+                  style={{ fontSize: "0.78rem", padding: "5px 12px", borderColor: "var(--green)", color: "var(--green)" }}
+                >
+                  + Use Saved Ration
+                </button>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 8, alignItems: "end" }}>
+                <div><label style={labelStyle}>Date</label><input type="date" value={newFeedDate} onChange={e => setNewFeedDate(e.target.value)} style={inputStyle} /></div>
+                <div><label style={labelStyle}>Note / Custom Entry</label><input value={newFeedNote} onChange={e => setNewFeedNote(e.target.value)} placeholder="e.g. 3 lbs Honor Show Chow 2x daily" style={inputStyle} /></div>
+                <button className="btn btn-primary" onClick={addFeed} style={{ height: 38, padding: "0 16px" }}>+ Add</button>
+              </div>
             </div>
-            {feedNotes.length === 0 ? <div className="empty">No feed notes yet.</div> : (
-              <table><thead><tr><th>Date</th><th>Note</th></tr></thead>
-                <tbody>{feedNotes.map((f, i) => <tr key={i}><td>{f.date}</td><td>{f.note}</td></tr>)}</tbody>
-              </table>
+
+            {/* Feed log */}
+            <div className="section-card">
+              <h4>Feed History</h4>
+              {feedNotes.length === 0 ? <div className="empty">No feed entries yet. Log a note or use a saved ration.</div> : (
+                <table>
+                  <thead><tr><th>Date</th><th>Entry</th><th>Type</th></tr></thead>
+                  <tbody>
+                    {feedNotes.map((f, i) => (
+                      <tr key={i}>
+                        <td style={{ whiteSpace: "nowrap" }}>{f.date}</td>
+                        <td>
+                          {f.ration_name ? (
+                            <div>
+                              <div style={{ fontWeight: 700, color: "var(--green)" }}>{f.ration_name}</div>
+                              {f.note && <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginTop: 2 }}>{f.note}</div>}
+                              {f.ration_nutrients && (
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+                                  {Object.entries(f.ration_nutrients).slice(0, 4).map(([k, v]) => (
+                                    <span key={k} style={{ padding: "2px 8px", borderRadius: 6, fontSize: "0.68rem", background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)", color: "var(--green)" }}>
+                                      {k}: {parseFloat(v).toFixed(1)}%
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                              {f.ration_mix && f.ration_mix.length > 0 && (
+                                <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: 4 }}>
+                                  {f.ration_mix.map(m => m.name).join(" · ")}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <span>{f.note}</span>
+                          )}
+                        </td>
+                        <td>
+                          <span style={{ padding: "2px 8px", borderRadius: 6, fontSize: "0.68rem", fontWeight: 700, background: f.ration_name ? "rgba(16,185,129,0.1)" : "var(--surface)", color: f.ration_name ? "var(--green)" : "var(--muted)", border: "1px solid", borderColor: f.ration_name ? "rgba(16,185,129,0.25)" : "var(--border)" }}>
+                            {f.ration_name ? "Saved Ration" : "Manual Note"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* Ration picker modal */}
+            {showRationPicker && (
+              <RationPickerModal
+                rations={savedRations}
+                date={newFeedDate}
+                onPick={async (ration) => {
+                  const entry = {
+                    pig_id: pig.id,
+                    owner_id: profile.id,
+                    date: newFeedDate,
+                    note: null,
+                    ration_id: ration.id,
+                    ration_name: ration.name,
+                    ration_nutrients: ration.nutrients || {},
+                    ration_mix: (ration.mix || []).map(m => ({ name: m.ingredientName || "", lbs: m.lbs })),
+                  };
+                  const { data, error } = await supabase.from("showman_feed_notes").insert(entry).select().single();
+                  if (error) { console.error("Feed insert error:", error); alert("Error saving: " + error.message); return; }
+                  if (data) setFeedNotes(prev => [data, ...prev]);
+                  setShowRationPicker(false);
+                }}
+                onClose={() => setShowRationPicker(false)}
+              />
             )}
           </div>
         )}
@@ -560,5 +654,568 @@ function ShowmanPigDetail({ pig, profile, onBack, onDelete }) {
   );
 }
 
+
+
+// ── FEED CALCULATOR ────────────────────────────────────────────────────────
+const DEFAULT_NUTRIENTS = ["Protein", "Fat", "Fiber", "Moisture", "Lysine", "Phosphorus"];
+
+function FeedCalculator({ profile, pigs }) {
+  const [tab, setTab] = useState("calculator");
+  // Ingredients library
+  const [ingredients, setIngredients] = useState([]);
+  const [savedRations, setSavedRations] = useState([]);
+  const [loadingData, setLoadingData] = useState(true);
+
+  // Calculator state
+  const [mix, setMix] = useState([]); // { ingredientId, lbs }
+  const [showAddIngredient, setShowAddIngredient] = useState(false);
+  const [showSaveRation, setShowSaveRation] = useState(false);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoadingData(true);
+    const [ingRes, rationRes] = await Promise.all([
+      supabase.from("feed_ingredients").select("*").eq("owner_id", profile.id).order("name"),
+      supabase.from("feed_rations").select("*").eq("owner_id", profile.id).order("created_at", { ascending: false }),
+    ]);
+    setIngredients(ingRes.data || []);
+    setSavedRations(rationRes.data || []);
+    setLoadingData(false);
+  };
+
+  const saveIngredient = async (ing) => {
+    const row = { owner_id: profile.id, name: ing.name, nutrients: ing.nutrients };
+    if (ing.id) {
+      await supabase.from("feed_ingredients").update(row).eq("id", ing.id);
+      setIngredients(prev => prev.map(i => i.id === ing.id ? { ...i, ...row } : i));
+    } else {
+      const { data } = await supabase.from("feed_ingredients").insert(row).select().single();
+      if (data) setIngredients(prev => [...prev, data]);
+    }
+  };
+
+  const deleteIngredient = async (id) => {
+    if (!window.confirm("Delete this ingredient?")) return;
+    await supabase.from("feed_ingredients").delete().eq("id", id);
+    setIngredients(prev => prev.filter(i => i.id !== id));
+    setMix(prev => prev.filter(m => m.ingredientId !== id));
+  };
+
+  const saveRation = async (name, pigId) => {
+    const row = {
+      owner_id: profile.id,
+      pig_id: pigId || null,
+      name,
+      mix: mix.map(m => {
+  const ing = ingredients.find(i => i.id === m.ingredientId);
+  return { ingredientId: m.ingredientId, ingredientName: ing?.name || "", lbs: m.lbs };
+}),
+      nutrients: calcNutrients(),
+      total_lbs: mix.reduce((s, m) => s + (parseFloat(m.lbs) || 0), 0),
+      date: new Date().toISOString().split("T")[0],
+    };
+    const { data } = await supabase.from("feed_rations").insert(row).select().single();
+    if (data) setSavedRations(prev => [data, ...prev]);
+  };
+
+  const deleteRation = async (id) => {
+    if (!window.confirm("Delete this ration?")) return;
+    await supabase.from("feed_rations").delete().eq("id", id);
+    setSavedRations(prev => prev.filter(r => r.id !== id));
+  };
+
+  // Calculate blended nutrients from mix
+  const calcNutrients = () => {
+    const totalLbs = mix.reduce((s, m) => s + (parseFloat(m.lbs) || 0), 0);
+    if (totalLbs === 0) return {};
+    const result = {};
+    for (const m of mix) {
+      const ing = ingredients.find(i => i.id === m.ingredientId);
+      if (!ing) continue;
+      const lbs = parseFloat(m.lbs) || 0;
+      const pct = lbs / totalLbs;
+      for (const [key, val] of Object.entries(ing.nutrients || {})) {
+        result[key] = (result[key] || 0) + (parseFloat(val) || 0) * pct;
+      }
+    }
+    return result;
+  };
+
+  const totalLbs = mix.reduce((s, m) => s + (parseFloat(m.lbs) || 0), 0);
+  const blended = calcNutrients();
+  const allNutrients = [...new Set([...DEFAULT_NUTRIENTS, ...Object.keys(blended)])];
+
+  const cardStyle = { background: "var(--card-bg)", borderRadius: 14, border: "1px solid var(--border)", padding: "20px 22px", marginBottom: 16 };
+  const smallLabel = { fontSize: "0.62rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4, display: "block" };
+
+  return (
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+        <div>
+          <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.6rem", fontWeight: 800, letterSpacing: "-0.03em" }}>Feed Calculator</h2>
+          <p style={{ color: "var(--muted)", fontSize: "0.84rem", marginTop: 4 }}>Build rations, calculate nutrition, save for your records.</p>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {["calculator", "ingredients", "history"].map(t => (
+            <button key={t} onClick={() => setTab(t)} className={`btn ${tab === t ? "btn-primary" : "btn-outline"}`} style={{ fontSize: "0.75rem", padding: "6px 14px", background: tab === t ? "var(--green)" : undefined, borderColor: tab === t ? "var(--green)" : undefined }}>
+              {t.charAt(0).toUpperCase() + t.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loadingData ? <div style={{ textAlign: "center", padding: 60, color: "var(--muted)" }}>Loading...</div> : null}
+
+      {/* ── CALCULATOR TAB ── */}
+      {!loadingData && tab === "calculator" && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 20, alignItems: "start" }}>
+          {/* Left: mix builder */}
+          <div>
+            <div style={cardStyle}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                <div style={{ fontWeight: 700, fontSize: "0.9rem" }}>Ingredients in Mix</div>
+                <button className="btn btn-primary" style={{ fontSize: "0.75rem", padding: "5px 12px", background: "var(--green)" }} onClick={() => setShowAddIngredient("mix")}>+ Add</button>
+              </div>
+              {mix.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "30px 0", color: "var(--muted)", fontSize: "0.84rem" }}>
+                  No ingredients added yet.<br />Click "+ Add" to build your mix.
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {mix.map((m, i) => {
+                    const ing = ingredients.find(x => x.id === m.ingredientId);
+                    const lbs = parseFloat(m.lbs) || 0;
+                    const pct = totalLbs > 0 ? ((lbs / totalLbs) * 100).toFixed(1) : 0;
+                    return (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", background: "var(--surface)", borderRadius: 9, border: "1px solid var(--border)" }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 700, fontSize: "0.88rem" }}>{ing?.name || "Unknown"}</div>
+                          <div style={{ fontSize: "0.72rem", color: "var(--muted)" }}>{pct}% of mix</div>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <input
+                            type="number" min="0" step="0.1"
+                            value={m.lbs}
+                            onChange={e => setMix(prev => prev.map((x, j) => j === i ? { ...x, lbs: e.target.value } : x))}
+                            style={{ width: 70, padding: "5px 8px", border: "1px solid var(--border)", borderRadius: 6, background: "var(--surface)", color: "var(--text)", fontFamily: "'Space Grotesk', sans-serif", fontSize: "0.82rem" }}
+                            placeholder="lbs"
+                          />
+                          <span style={{ fontSize: "0.72rem", color: "var(--muted)" }}>lbs</span>
+                          <button onClick={() => setMix(prev => prev.filter((_, j) => j !== i))} style={{ background: "rgba(239,68,68,0.1)", border: "none", borderRadius: 6, padding: "4px 8px", color: "var(--red)", cursor: "pointer", fontSize: "0.8rem", fontWeight: 700 }}>×</button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div style={{ display: "flex", justifyContent: "flex-end", fontSize: "0.82rem", color: "var(--muted)", paddingTop: 4 }}>
+                    Total: <strong style={{ color: "var(--text)", marginLeft: 6 }}>{totalLbs.toFixed(1)} lbs</strong>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Visual bar */}
+            {mix.length > 0 && totalLbs > 0 && (
+              <div style={cardStyle}>
+                <div style={{ fontWeight: 700, fontSize: "0.82rem", marginBottom: 10 }}>Mix Breakdown</div>
+                <div style={{ display: "flex", height: 28, borderRadius: 8, overflow: "hidden", gap: 1 }}>
+                  {mix.map((m, i) => {
+                    const ing = ingredients.find(x => x.id === m.ingredientId);
+                    const lbs = parseFloat(m.lbs) || 0;
+                    const pct = totalLbs > 0 ? (lbs / totalLbs) * 100 : 0;
+                    const colors = ["var(--green)", "var(--blue-bright)", "var(--amber)", "#a78bfa", "#f472b6", "#34d399", "#60a5fa"];
+                    return pct > 0 ? (
+                      <div key={i} style={{ width: `${pct}%`, background: colors[i % colors.length], display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.6rem", fontWeight: 700, color: "white", overflow: "hidden", whiteSpace: "nowrap", padding: "0 4px" }}>
+                        {pct > 8 ? ing?.name : ""}
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
+                  {mix.map((m, i) => {
+                    const ing = ingredients.find(x => x.id === m.ingredientId);
+                    const lbs = parseFloat(m.lbs) || 0;
+                    const pct = totalLbs > 0 ? ((lbs / totalLbs) * 100).toFixed(1) : 0;
+                    const colors = ["var(--green)", "var(--blue-bright)", "var(--amber)", "#a78bfa", "#f472b6", "#34d399", "#60a5fa"];
+                    return (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: "0.72rem" }}>
+                        <div style={{ width: 8, height: 8, borderRadius: 2, background: colors[i % colors.length] }} />
+                        <span style={{ color: "var(--muted)" }}>{ing?.name}</span>
+                        <span style={{ fontWeight: 700 }}>{pct}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right: nutrition panel */}
+          <div>
+            <div style={{ ...cardStyle, borderColor: mix.length > 0 ? "rgba(16,185,129,0.3)" : "var(--border)" }}>
+              <div style={{ fontWeight: 700, fontSize: "0.9rem", marginBottom: 14, color: mix.length > 0 ? "var(--green)" : "var(--text)" }}>Blended Nutrition</div>
+              {mix.length === 0 ? (
+                <div style={{ color: "var(--muted)", fontSize: "0.82rem" }}>Add ingredients to see calculated nutrition.</div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {allNutrients.map(n => {
+                    const val = blended[n];
+                    if (val === undefined) return null;
+                    return (
+                      <div key={n}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                          <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>{n}</span>
+                          <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--green)" }}>{val.toFixed(2)}%</span>
+                        </div>
+                        <div style={{ height: 4, background: "var(--border)", borderRadius: 4, overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: `${Math.min(val * 3, 100)}%`, background: "var(--green)", borderRadius: 4, transition: "width 0.3s" }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            {mix.length > 0 && (
+              <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center", background: "var(--green)", fontSize: "0.88rem", padding: "12px" }} onClick={() => setShowSaveRation(true)}>
+                Save This Ration →
+              </button>
+            )}
+            {ingredients.length === 0 && (
+              <div style={{ marginTop: 12, padding: "12px 14px", background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: 10, fontSize: "0.78rem", color: "var(--amber)", lineHeight: 1.6 }}>
+                No ingredients yet. Go to the <strong>Ingredients</strong> tab to add corn, soybean meal, etc.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── INGREDIENTS TAB ── */}
+      {!loadingData && tab === "ingredients" && (
+        <div>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+            <button className="btn btn-primary" style={{ background: "var(--green)" }} onClick={() => setShowAddIngredient("library")}>+ New Ingredient</button>
+          </div>
+          {ingredients.length === 0 ? (
+            <div style={{ ...cardStyle, textAlign: "center", padding: "40px 20px", color: "var(--muted)" }}>
+              No ingredients yet. Add corn, soybean meal, or any custom ingredient.
+            </div>
+          ) : (
+            <div style={{ ...cardStyle, padding: 0, overflow: "hidden" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ background: "var(--surface)" }}>
+                    <th style={{ padding: "10px 16px", textAlign: "left", fontSize: "0.65rem", color: "var(--muted)", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>Ingredient</th>
+                    {DEFAULT_NUTRIENTS.map(n => <th key={n} style={{ padding: "10px 10px", textAlign: "right", fontSize: "0.65rem", color: "var(--muted)", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>{n} %</th>)}
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {ingredients.map((ing, i) => (
+                    <tr key={ing.id} style={{ borderTop: "1px solid var(--border)", background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)" }}>
+                      <td style={{ padding: "10px 16px", fontWeight: 700, fontSize: "0.88rem" }}>{ing.name}</td>
+                      {DEFAULT_NUTRIENTS.map(n => (
+                        <td key={n} style={{ padding: "10px 10px", textAlign: "right", fontSize: "0.82rem", color: ing.nutrients?.[n] ? "var(--text)" : "var(--muted)" }}>
+                          {ing.nutrients?.[n] != null ? `${ing.nutrients[n]}%` : "—"}
+                        </td>
+                      ))}
+                      <td style={{ padding: "10px 12px", textAlign: "right", whiteSpace: "nowrap" }}>
+                        <button onClick={() => deleteIngredient(ing.id)} style={{ background: "rgba(239,68,68,0.1)", border: "none", borderRadius: 6, padding: "3px 8px", color: "var(--red)", cursor: "pointer", fontSize: "0.72rem", fontWeight: 700 }}>Delete</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── HISTORY TAB ── */}
+      {!loadingData && tab === "history" && (
+        <div>
+          {savedRations.length === 0 ? (
+            <div style={{ ...cardStyle, textAlign: "center", padding: "40px 20px", color: "var(--muted)" }}>
+              No saved rations yet. Build a mix in the Calculator tab and save it.
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {savedRations.map(r => {
+                const pig = pigs.find(p => p.id === r.pig_id);
+                return (
+                  <div key={r.id} style={cardStyle}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: 2 }}>{r.name}</div>
+                        <div style={{ fontSize: "0.72rem", color: "var(--muted)" }}>
+                          {r.date} · {r.total_lbs?.toFixed(1)} lbs total{pig ? ` · ${pig.name || pig.tag}` : ""}
+                        </div>
+                      </div>
+                      <button onClick={() => deleteRation(r.id)} style={{ background: "rgba(239,68,68,0.1)", border: "none", borderRadius: 6, padding: "3px 8px", color: "var(--red)", cursor: "pointer", fontSize: "0.72rem", fontWeight: 700 }}>Delete</button>
+                    </div>
+                    {/* Ingredients */}
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: "0.62rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>Ingredients</div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        {(r.mix || []).map((m, i) => {
+                          const ing = ingredients.find(x => x.id === m.ingredientId);
+                          return (
+                            <span key={i} style={{ padding: "3px 10px", borderRadius: 20, fontSize: "0.75rem", fontWeight: 600, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}>
+                              {ing?.name || "Unknown"} — {m.lbs} lbs
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    {/* Nutrition */}
+                    {r.nutrients && Object.keys(r.nutrients).length > 0 && (
+                      <div>
+                        <div style={{ fontSize: "0.62rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>Blended Nutrition</div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                          {Object.entries(r.nutrients).map(([k, v]) => (
+                            <div key={k} style={{ padding: "4px 10px", borderRadius: 8, background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)", fontSize: "0.75rem" }}>
+                              <span style={{ color: "var(--muted)" }}>{k}: </span>
+                              <strong style={{ color: "var(--green)" }}>{parseFloat(v).toFixed(2)}%</strong>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── ADD INGREDIENT MODAL ── */}
+      {showAddIngredient && (
+        <AddIngredientModal
+          mode={showAddIngredient}
+          ingredients={ingredients}
+          onSave={async (ing) => { await saveIngredient(ing); setShowAddIngredient(false); }}
+          onAddToMix={(id) => { if (!mix.find(m => m.ingredientId === id)) setMix(prev => [...prev, { ingredientId: id, lbs: "" }]); setShowAddIngredient(false); setTab("calculator"); }}
+          onClose={() => setShowAddIngredient(false)}
+        />
+      )}
+
+      {/* ── SAVE RATION MODAL ── */}
+      {showSaveRation && (
+        <SaveRationModal
+          pigs={pigs}
+          onSave={async (name, pigId) => { await saveRation(name, pigId); setShowSaveRation(false); }}
+          onClose={() => setShowSaveRation(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function AddIngredientModal({ mode, ingredients, onSave, onAddToMix, onClose }) {
+  const [step, setStep] = useState(mode === "mix" ? "pick" : "new");
+  const [name, setName] = useState("");
+  const [nutrients, setNutrients] = useState({});
+  const [search, setSearch] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const filtered = ingredients.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
+
+  const handleSave = async () => {
+    if (!name.trim()) return;
+    setSaving(true);
+    await onSave({ name, nutrients });
+    setSaving(false);
+  };
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal-box" style={{ maxWidth: 520 }}>
+        <div className="modal-header">
+          <h3>{step === "pick" ? "Add to Mix" : "New Ingredient"}</h3>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          {step === "pick" && (
+            <>
+              <input type="text" placeholder="Search ingredients..." value={search} onChange={e => setSearch(e.target.value)} style={inputStyle} autoFocus />
+              {filtered.length === 0 ? (
+                <div style={{ color: "var(--muted)", fontSize: "0.84rem", textAlign: "center", padding: "20px 0" }}>
+                  No ingredients found. <button onClick={() => setStep("new")} style={{ background: "none", border: "none", color: "var(--blue-bright)", cursor: "pointer", fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif" }}>Create one →</button>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 300, overflowY: "auto" }}>
+                  {filtered.map(ing => (
+                    <button key={ing.id} onClick={() => onAddToMix(ing.id)}
+                      style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", borderRadius: 9, border: "1px solid var(--border)", background: "var(--surface)", cursor: "pointer", fontFamily: "'Space Grotesk', sans-serif", textAlign: "left" }}>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: "0.88rem" }}>{ing.name}</div>
+                        <div style={{ fontSize: "0.7rem", color: "var(--muted)" }}>
+                          {Object.entries(ing.nutrients || {}).slice(0, 3).map(([k, v]) => `${k}: ${v}`) .join(" · ")}
+                        </div>
+                      </div>
+                      <span style={{ fontSize: "0.75rem", color: "var(--green)", fontWeight: 700 }}>Add →</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <button onClick={() => setStep("new")} style={{ background: "none", border: "none", color: "var(--blue-bright)", cursor: "pointer", fontSize: "0.8rem", fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700 }}>+ Create new ingredient</button>
+                <button className="btn btn-outline" onClick={onClose}>Cancel</button>
+              </div>
+            </>
+          )}
+          {step === "new" && (
+            <>
+              <div>
+                <label style={labelStyle}>Ingredient Name</label>
+                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Corn, Soybean Meal, Lysine HCl" style={inputStyle} autoFocus />
+              </div>
+              <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text)", marginBottom: 8 }}>Nutritional Values (%)</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {DEFAULT_NUTRIENTS.map(n => (
+                  <div key={n}>
+                    <label style={labelStyle}>{n} %</label>
+                    <input type="number" min="0" max="100" step="0.01" value={nutrients[n] || ""} onChange={e => setNutrients(prev => ({ ...prev, [n]: e.target.value }))} placeholder="0.00" style={inputStyle} />
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                {mode === "mix" && <button className="btn btn-outline" onClick={() => setStep("pick")}>← Back</button>}
+                <button className="btn btn-outline" onClick={onClose}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleSave} disabled={!name.trim() || saving} style={{ background: "var(--green)", opacity: (!name.trim() || saving) ? 0.5 : 1 }}>
+                  {saving ? "Saving..." : "Save Ingredient"}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SaveRationModal({ pigs, onSave, onClose }) {
+  const [name, setName] = useState("");
+  const [pigId, setPigId] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!name.trim()) return;
+    setSaving(true);
+    await onSave(name, pigId || null);
+    setSaving(false);
+  };
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal-box" style={{ maxWidth: 400 }}>
+        <div className="modal-header">
+          <h3>Save Ration</h3>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          <div>
+            <label style={labelStyle}>Ration Name *</label>
+            <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Grower Mix Week 8" style={inputStyle} autoFocus />
+          </div>
+          <div>
+            <label style={labelStyle}>Assign to Pig (optional)</label>
+            <select value={pigId} onChange={e => setPigId(e.target.value)} style={inputStyle}>
+              <option value="">No specific pig</option>
+              {pigs.map(p => <option key={p.id} value={p.id}>{p.name || p.tag}</option>)}
+            </select>
+          </div>
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+            <button className="btn btn-outline" onClick={onClose}>Cancel</button>
+            <button className="btn btn-primary" onClick={handleSave} disabled={!name.trim() || saving} style={{ background: "var(--green)", opacity: (!name.trim() || saving) ? 0.5 : 1 }}>
+              {saving ? "Saving..." : "Save Ration"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+function RationPickerModal({ rations, date, onPick, onClose }) {
+  const [search, setSearch] = useState("");
+  const [expanded, setExpanded] = useState(null);
+  const filtered = rations.filter(r => r.name.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal-box" style={{ maxWidth: 520 }}>
+        <div className="modal-header">
+          <h3>Select a Saved Ration</h3>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 10 }}>
+            Logging for <strong style={{ color: "var(--text)" }}>{date}</strong>
+          </div>
+          <input type="text" placeholder="Search rations..." value={search} onChange={e => setSearch(e.target.value)} style={inputStyle} autoFocus />
+          {filtered.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "24px 0", color: "var(--muted)", fontSize: "0.84rem" }}>
+              No saved rations yet. Build one in the Feed Calculator tab.
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 360, overflowY: "auto" }}>
+              {filtered.map(r => (
+                <div key={r.id} style={{ border: "1px solid var(--border)", borderRadius: 10, overflow: "hidden" }}>
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", cursor: "pointer", background: expanded === r.id ? "rgba(16,185,129,0.06)" : "var(--surface)" }}
+                    onClick={() => setExpanded(expanded === r.id ? null : r.id)}
+                  >
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: "0.9rem" }}>{r.name}</div>
+                      <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: 2 }}>
+                        {r.date} · {r.total_lbs?.toFixed(1)} lbs · {(r.mix || []).length} ingredients
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                      <span style={{ fontSize: "0.72rem", color: "var(--muted)" }}>{expanded === r.id ? "▲" : "▼"}</span>
+                      <button
+                        className="btn btn-primary"
+                        onClick={e => { e.stopPropagation(); onPick(r); }}
+                        style={{ fontSize: "0.75rem", padding: "5px 12px", background: "var(--green)" }}
+                      >
+                        Use →
+                      </button>
+                    </div>
+                  </div>
+                  {expanded === r.id && (
+                    <div style={{ padding: "10px 14px", borderTop: "1px solid var(--border)", background: "rgba(16,185,129,0.03)" }}>
+                      {r.nutrients && Object.keys(r.nutrients).length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
+                          {Object.entries(r.nutrients).map(([k, v]) => (
+                            <span key={k} style={{ padding: "2px 8px", borderRadius: 6, fontSize: "0.68rem", background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)", color: "var(--green)" }}>
+                              {k}: {parseFloat(v).toFixed(1)}%
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {(r.mix || []).length > 0 && (
+                        <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
+                          {r.mix.map((m, i) => <span key={i}>{m.lbs} lbs {m.ingredientName || "ingredient"}{i < r.mix.length - 1 ? " · " : ""}</span>)}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <button className="btn btn-outline" onClick={onClose}>Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export { ShowmanTasks, TaskCard, AddTaskModal, ShowmanDashboard, ShowmanAddPigModal, ShowmanPigDetail };

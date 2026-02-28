@@ -14,7 +14,7 @@ export async function loadFarmData() {
 
   const farmId = farm.id
 
-  const [sows, boars, litters, pigs, customers, cycles, expenses, sales, saleItems] = await Promise.all([
+  const [sows, boars, litters, pigs, customers, cycles, expenses, sales] = await Promise.all([
     supabase.from('sows').select('*').eq('farm_id', farmId),
     supabase.from('boars').select('*').eq('farm_id', farmId),
     supabase.from('litters').select('*').eq('farm_id', farmId),
@@ -23,13 +23,17 @@ export async function loadFarmData() {
     supabase.from('breeding_cycles').select('*').eq('farm_id', farmId),
     supabase.from('sow_expenses').select('*').eq('farm_id', farmId),
     supabase.from('sales').select('*').eq('farm_id', farmId),
-    supabase.from('sale_items').select('*'),
   ])
 
   const cyclesData = cycles.data || []
   const expensesData = expenses.data || []
   const salesData = sales.data || []
-  const saleItemsData = saleItems.data || []
+
+  // Only fetch sale_items that belong to this farm's sales
+  const saleIds = salesData.map(s => s.id)
+  const saleItemsData = saleIds.length > 0
+    ? (await supabase.from('sale_items').select('*').in('sale_id', saleIds)).data || []
+    : []
 
   // Build a map of pig_id -> sale info
   const pigSaleMap = {}

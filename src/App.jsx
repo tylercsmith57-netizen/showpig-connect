@@ -24,13 +24,11 @@ import { SowModal, BoarModal, ShowmanModal, AddPigModal, RecordFarrowModal, LogB
 import { ShowmanDashboard } from './components/showman/ShowmanPortal';
 
 // Shared / Auth
-import { LandingPage, BreederLogin, BreederSignup, CustomerLogin } from './components/shared/Auth';
+import { LandingPage, BreederLogin, BreederSignup } from './components/shared/Auth';
 import { ShowmanLogin, ShowmanSignup } from './components/shared/ShowmanAuth';
-import { CustomerPortal } from './components/shared/Auth';
 
 export default function App() {
   const [portal, setPortal] = useState("landing");
-  const [loggedInCustomer, setLoggedInCustomer] = useState(null);
   const [loggedInShowman, setLoggedInShowman] = useState(null);
 
 const [data, setData] = useState(initialData)
@@ -68,6 +66,9 @@ useEffect(() => {
   }
 }, []);
 
+
+
+
   // Modal state
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [expenseDefaultSow, setExpenseDefaultSow] = useState(null);
@@ -88,6 +89,22 @@ useEffect(() => {
   const [saleDefaultCustomer, setSaleDefaultCustomer] = useState(null);
 
   // Data mutations
+
+  const editPig = async (pigId, updates) => {
+  await supabase.from("pigs").update({
+    tag: updates.tag,
+    sex: updates.sex,
+    color: updates.color || null,
+    birth_weight: updates.birthWeight || null,
+    purchase_price: updates.askingPrice || 0,
+    show_goal: updates.showGoal || null,
+  }).eq("id", pigId);
+  setData(prev => ({
+    ...prev,
+    pigs: prev.pigs.map(p => p.id === pigId ? { ...p, ...updates } : p)
+  }));
+};
+
   const logBreedDate = async (sowId, cycle, autoExpenses = []) => {
     const cycleData = {
       farm_id: farmId,
@@ -329,6 +346,59 @@ const saveShowman = async (sm) => {
   });
 };
 
+const assignCustomer = async (customerId, pigId) => {
+  const customer = data.showmen.find(sm => sm.id === customerId);
+  const pig = data.pigs.find(p => p.id === pigId);
+  const litter = data.litters.find(l => l.id === pig?.litterId);
+  const sow = data.sows.find(s => s.id === litter?.sowId);
+  const today = new Date().toISOString().split("T")[0];
+
+  // Create sale record
+  const { data: newSale } = await supabase.from("sales")
+    .insert([{ farm_id: farmId, customer_id: customerId, sale_date: today, notes: "Direct assignment" }])
+    .select().single();
+  if (!newSale) return;
+
+  // Create sale item
+  await supabase.from("sale_items").insert([{
+    sale_id: newSale.id,
+    pig_id: pigId,
+    sale_price: pig?.askingPrice ?? pig?.purchasePrice ?? 0,
+  }]);
+
+  // Mark pig as sold
+  await supabase.from("pigs").update({ sold: true, sold_date: today, customer_id: customerId }).eq("id", pigId);
+
+  // Find the showman's profile by email to get their owner_id
+  const { data: showmanProfile } = await supabase
+    .from("showman_profiles")
+    .select("id")
+    .eq("email", customer?.email)
+    .single();
+
+  // Create a record in showman_pigs so it shows up in their portal
+  if (showmanProfile) {
+    await supabase.from("showman_pigs").insert({
+      owner_id: showmanProfile.id,
+      tag: pig?.tag || "",
+      name: pig?.tag || "",
+      sex: pig?.sex || "Unknown",
+      breed: pig?.breed || "",
+      color: pig?.color || "",
+      from_breeder: true,
+      breeder_pig_id: pigId,
+      breeder_name: data.farm?.owner || "",
+      farm_name: data.farm?.name || "",
+    });
+  }
+
+  setData(prev => {
+    const updatedPigs = prev.pigs.map(p => p.id === pigId ? { ...p, sold: true, soldDate: today, customerId, showmanName: customer?.name || null, saleId: newSale.id } : p);
+    const updatedShowmen = prev.showmen.map(sm => sm.id === customerId ? { ...sm, pigIds: [...new Set([...(sm.pigIds || []), pigId])] } : sm);
+    return { ...prev, pigs: updatedPigs, showmen: updatedShowmen, sales: [...(prev.sales || []), { id: newSale.id, customerId, saleDate: today, items: [{ pigId, salePrice: pig?.askingPrice ?? 0 }] }] };
+  });
+};
+
 const unassignCustomer = async (customerId, pigId) => {
   await supabase.from("pigs").update({ sold: false, sold_date: null, customer_id: null }).eq("id", pigId);
   // Find and delete the sale item
@@ -367,7 +437,7 @@ const unassignCustomer = async (customerId, pigId) => {
       case "boars": return <BoarsView data={data} onAddBoar={() => { setEditBoar(null); setShowBoarModal(true); }} onEditBoar={(boar) => { setEditBoar(boar); setShowBoarModal(true); }} onDeleteBoar={deleteBoar} />;
       case "breeding": return <BreedingCalendar data={data} setView={setView} onLogBreed={(id) => { setBreedDefaultSow(id); setShowBreedModal(true); }} />;
       case "pigs": return <PigsView data={data} setView={setView} onAddPig={() => { setAddPigLitterId(null); setShowAddPigModal(true); }} onRecordSale={() => setShowSaleModal(true)} />;
-      case "pigDetail": return <PigDetail data={data} id={view.id} setView={setView} onAssignCustomer={null} onUnassignCustomer={unassignCustomer} onRetainAnimal={retainAnimal} />;
+      case "pigDetail": return <PigDetail data={data} id={view.id} setView={setView} onAssignCustomer={assignCustomer} onUnassignCustomer={unassignCustomer} onRetainAnimal={retainAnimal} onEditPig={editPig} />;
       case "showmen": return <ShowmenView data={data} setView={setView} onAddShowman={() => { setEditShowman(null); setShowShowmanModal(true); }} onEditShowman={(sm) => { setEditShowman(sm); setShowShowmanModal(true); }} onDeleteShowman={deleteShowman} onRecordSale={(customerId) => { setSaleDefaultCustomer(customerId); setShowSaleModal(true); }} />;
       case "reports": return <FinancialReports data={data} />;
       default: return <div className="empty" style={{ padding: 80 }}>Coming soon...</div>;
@@ -397,14 +467,7 @@ if (!data && portal === 'breeder') return <div style={{ color: 'white', padding:
   if (portal === "showman") {
     return <ShowmanDashboard profile={loggedInShowman} onLogout={() => { setLoggedInShowman(null); setPortal("landing"); supabase.auth.signOut(); }} />;
   }
-  if (portal === "customer-login") {
-    return <CustomerLogin data={data} onLogin={(customer) => { setLoggedInCustomer(customer); setPortal("customer"); }} onBack={() => setPortal("landing")} />;
-  }
-  if (portal === "customer" && loggedInCustomer) {
-    const freshCustomer = data.showmen.find(sm => sm.id === loggedInCustomer.id) || loggedInCustomer;
-    const updatePig = (updatedPig) => setData(prev => ({ ...prev, pigs: prev.pigs.map(p => p.id === updatedPig.id ? updatedPig : p) }));
-    return <CustomerPortal customer={freshCustomer} data={data} onUpdatePig={updatePig} onLogout={() => { setLoggedInCustomer(null); setPortal("landing"); }} />;
-  }
+
 
   //  Breeder portal 
   return (
